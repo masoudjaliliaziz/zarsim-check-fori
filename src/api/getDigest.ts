@@ -1,5 +1,5 @@
 export async function getDigest(): Promise<string> {
-  const webUrl = "https://crm.zarsim.com";
+  const webUrl = "https://portal.zarsim.com";
   return fetch(`${webUrl}/_api/contextinfo`, {
     method: "POST",
     headers: { Accept: "application/json;odata=verbose" },

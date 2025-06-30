@@ -11,7 +11,7 @@ type Doc = {
 export async function handleAddTestItem(data: Doc) {
   const listName = "customerChecksDocFori";
   const itemType = "SP.Data.CustomerChecksDocForiListItem";
-  const webUrl = "https://crm.zarsim.com";
+  const webUrl = "https://portal.zarsim.com";
 
   if (!data.amount && !data.dueDate && !data.status) {
     // setState({ message: "لطفاً یک عنوان وارد کنید." });

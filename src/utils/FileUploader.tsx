@@ -1,8 +1,9 @@
 import { useState, useRef, useImperativeHandle, forwardRef } from "react";
 import toast from "react-hot-toast";
+import { useDropzone } from "react-dropzone";
 
 interface FileUploaderProps {
-  folderGuid: string; // فقط همین برای مسیر پوشه کافی است
+  folderGuid: string;
   title?: string;
   inputId: string;
 }
@@ -14,12 +15,22 @@ export interface FileUploaderHandle {
 }
 
 const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
-  ({ folderGuid, title, inputId }, ref) => {
+  ({ folderGuid, title = "آپلود فایل‌ها", inputId }, ref) => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [uploadStatus, setUploadStatus] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // ✅ Dropzone config
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+      onDrop: (acceptedFiles) => {
+        setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
+        setUploadStatus("");
+        setUploadProgress(0);
+      },
+      multiple: true,
+    });
 
     useImperativeHandle(ref, () => ({
       getFiles: () => selectedFiles,
@@ -35,7 +46,7 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           return;
         }
 
-        const webUrl = "https://crm.zarsim.com";
+        const webUrl = "https://portal.zarsim.com";
         const libraryName = "customer_checks_back";
         const fullFolderPath = `${libraryName}/${folderGuid}`;
 
@@ -47,16 +58,13 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           const data = await contextInfo.json();
           const digest = data.d.GetContextWebInformation.FormDigestValue;
 
-          // ساخت پوشه هدف در صورت نیاز
           await fetch(`${webUrl}/_api/web/folders/add('${fullFolderPath}')`, {
             method: "POST",
             headers: {
               Accept: "application/json;odata=verbose",
               "X-RequestDigest": digest,
             },
-          }).catch((err) => {
-            console.error("ایجاد پوشه ناموفق بود:", err.message);
-          });
+          }).catch(() => {}); // اگر پوشه وجود داشته باشه، مشکلی نیست
 
           let successCount = 0;
 
@@ -77,11 +85,8 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
               }
             );
 
-            if (uploadRes.ok) {
-              successCount++;
-            } else {
-              throw new Error(`خطا در آپلود فایل ${file.name}`);
-            }
+            if (uploadRes.ok) successCount++;
+            else throw new Error(`خطا در آپلود فایل ${file.name}`);
 
             setUploadProgress(
               Math.round(((i + 1) / selectedFiles.length) * 100)
@@ -113,6 +118,22 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           {title}
         </label>
 
+        {/* ✅ ناحیه درگ اند دراپ */}
+        <div
+          {...getRootProps()}
+          className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-all ${
+            isDragActive ? "bg-indigo-100 border-indigo-500" : "bg-gray-100"
+          }`}
+        >
+          <input {...getInputProps()} />
+          <p className="text-sm text-gray-600">
+            {isDragActive
+              ? "رها کنید..."
+              : "برای آپلود فایل، بکشید و رها کنید یا کلیک کنید"}
+          </p>
+        </div>
+
+        {/* انتخاب دستی فایل (fallback) */}
         <input
           id={inputId}
           type="file"
@@ -120,14 +141,18 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           className="hidden"
           multiple
           onChange={(e) => {
-            if (e.target.files) {
-              setSelectedFiles(Array.from(e.target.files));
+            if (e.target.files && e.target.files.length > 0) {
+              setSelectedFiles((prev) => [
+                ...prev,
+                ...Array.from(e.target.files!),
+              ]);
               setUploadStatus("");
               setUploadProgress(0);
             }
           }}
         />
 
+        {/* لیست فایل‌های انتخاب‌شده */}
         {selectedFiles.length > 0 ? (
           <ul className="space-y-1">
             {selectedFiles.map((file, index) => (

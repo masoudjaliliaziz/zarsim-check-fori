@@ -12,9 +12,11 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.8.2",
     "@tanstack/react-query": "^5.81.5",
+    "@tanstack/react-query-devtools": "^5.81.5",
     "@vitejs/plugin-react": "^4.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-dropzone": "^14.3.8",
     "react-hot-toast": "^2.5.2",
     "react-multi-date-picker": "^4.5.2",
     "react-redux": "^9.2.0"
