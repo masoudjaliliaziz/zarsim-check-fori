@@ -4,6 +4,7 @@ import { useDropzone } from "react-dropzone";
 
 interface FileUploaderProps {
   folderGuid: string;
+  subFolder?: string; // ✅ جدید
   title?: string;
   inputId: string;
 }
@@ -15,14 +16,13 @@ export interface FileUploaderHandle {
 }
 
 const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
-  ({ folderGuid, title = "آپلود فایل‌ها", inputId }, ref) => {
+  ({ folderGuid, subFolder = "", title = "آپلود فایل‌ها", inputId }, ref) => {
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
     const [uploadStatus, setUploadStatus] = useState("");
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // ✅ Dropzone config
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop: (acceptedFiles) => {
         setSelectedFiles((prev) => [...prev, ...acceptedFiles]);
@@ -48,7 +48,9 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
 
         const webUrl = "https://portal.zarsim.com";
         const libraryName = "customer_checks_back";
-        const fullFolderPath = `${libraryName}/${folderGuid}`;
+        const fullFolderPath = subFolder
+          ? `${libraryName}/${folderGuid}/${subFolder}`
+          : `${libraryName}/${folderGuid}`;
 
         try {
           const contextInfo = await fetch(`${webUrl}/_api/contextinfo`, {
@@ -58,13 +60,14 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           const data = await contextInfo.json();
           const digest = data.d.GetContextWebInformation.FormDigestValue;
 
+          // ✅ ایجاد پوشه (در صورت نیاز)
           await fetch(`${webUrl}/_api/web/folders/add('${fullFolderPath}')`, {
             method: "POST",
             headers: {
               Accept: "application/json;odata=verbose",
               "X-RequestDigest": digest,
             },
-          }).catch(() => {}); // اگر پوشه وجود داشته باشه، مشکلی نیست
+          }).catch(() => {}); // اگه پوشه موجود بود، هیچی نمی‌گه
 
           let successCount = 0;
 
@@ -118,7 +121,6 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           {title}
         </label>
 
-        {/* ✅ ناحیه درگ اند دراپ */}
         <div
           {...getRootProps()}
           className={`border-2 border-dashed rounded-md p-4 text-center cursor-pointer transition-all ${
@@ -133,7 +135,6 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           </p>
         </div>
 
-        {/* انتخاب دستی فایل (fallback) */}
         <input
           id={inputId}
           type="file"
@@ -152,7 +153,6 @@ const FileUploader = forwardRef<FileUploaderHandle, FileUploaderProps>(
           }}
         />
 
-        {/* لیست فایل‌های انتخاب‌شده */}
         {selectedFiles.length > 0 ? (
           <ul className="space-y-1">
             {selectedFiles.map((file, index) => (

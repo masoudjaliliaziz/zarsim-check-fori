@@ -6,6 +6,7 @@ type Doc = {
   status: string;
   dueDate: string;
   parent_GUID: string;
+  title: string;
 };
 
 export async function handleAddTestItem(data: Doc) {
@@ -31,7 +32,7 @@ export async function handleAddTestItem(data: Doc) {
       },
       body: JSON.stringify({
         __metadata: { type: itemType },
-        Title: "back check",
+        Title: String(data.title),
         amount: String(data.amount),
         status: String(data.status),
         dueDate: String(data.dueDate),

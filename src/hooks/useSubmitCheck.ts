@@ -6,6 +6,7 @@ export interface Doc {
   status: string;
   dueDate: string;
   parent_GUID: string;
+  title: string;
 }
 
 export const useSubmitCheck = () =>

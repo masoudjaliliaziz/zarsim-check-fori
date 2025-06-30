@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../store/store";
 import { FileUploader } from "./utils/FileUploader";
@@ -29,6 +29,7 @@ function App() {
   const fileUploaderRef = useRef<FileUploaderHandle>(null);
   const { data: customers = [] } = useCustomers();
   const { mutateAsync: submitCheck } = useSubmitCheck();
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     dispatch(setParentGUID(uuidv4()));
@@ -57,6 +58,7 @@ function App() {
       await fileUploaderRef.current?.uploadFiles();
 
       await submitCheck({
+        title: selectedCustomer, // این خط اضافه شده
         amount: String(amount),
         dueDate: String(dueDate?.format("YYYY/MM/DD")),
         status: "0",
@@ -78,11 +80,14 @@ function App() {
         .filter((name): name is string => Boolean(name?.trim()))
     )
   );
+  const filteredTitles = uniqueTitles.filter((title) =>
+    title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-700 p-4">
+    <div className="h-full flex  justify-center  p-4">
       <form
-        className="bg-white rounded-lg shadow-lg p-6 w-full max-w-4xl space-y-6"
+        className="bg-white rounded-lg  p-6 w-full max-w-4xl space-y-6"
         onSubmit={handleSubmit}
       >
         {/* مشتری */}
@@ -154,8 +159,10 @@ function App() {
                 type="text"
                 placeholder="جستجو..."
                 className="border border-gray-300 rounded px-3 py-2 w-full"
-                onChange={() => {}}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
+
               <button
                 onClick={() => dispatch(setModalOpen(false))}
                 className="mr-2 text-red-500 font-bold"
@@ -166,7 +173,7 @@ function App() {
             </div>
 
             <ul className="max-h-60 overflow-y-auto">
-              {uniqueTitles.map((title) => (
+              {filteredTitles.map((title) => (
                 <li
                   key={title}
                   className="p-2 cursor-pointer hover:bg-indigo-100 rounded"
