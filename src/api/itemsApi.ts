@@ -41,11 +41,15 @@ export async function updateItemStatus(
   const listName = "customerChecksDocFori";
   const digest = await getDigest();
   const entityTypeName = await getListItemEntityTypeName(listName);
+
+  const isReset = statusType.trim() === "";
+
   const body = {
     __metadata: { type: entityTypeName },
-    statusType,
-    status: "1",
+    statusType: isReset ? "" : statusType,
+    status: isReset ? "0" : "1", // 👈 اینجا شرطی کردیم
   };
+
   const res = await fetch(
     `${webUrl}/_api/web/lists/getbytitle('${listName}')/items(${id})`,
     {
@@ -60,6 +64,7 @@ export async function updateItemStatus(
       body: JSON.stringify(body),
     }
   );
+
   if (!res.ok) {
     const text = await res.text();
     console.error("Error response:", text);

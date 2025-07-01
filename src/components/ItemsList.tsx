@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from "react";
 import { FileUploader } from "./../utils/FileUploader";
 import type { FileUploaderHandle } from "./../utils/FileUploader";
 
-import { allowedUsernames, MasterUsers } from "../constants/userRoles";
 import {
   fetchAllItems,
   updateItemStatus,
@@ -13,6 +12,7 @@ import {
 
 import { fetchFiles, fetchStatusFiles } from "../api/filesApi";
 import { addEditHistory, fetchEditHistory } from "../api/historyApi";
+import { useUserRoles } from "../hooks/useUserRoles";
 
 export function ItemsList() {
   const queryClient = useQueryClient();
@@ -39,9 +39,7 @@ export function ItemsList() {
   const [searchTerm, setSearchTerm] = useState<string>("");
 
   const uploaderRefs = useRef<Record<string, FileUploaderHandle | null>>({});
-
-  const isAgent = currentUsername && allowedUsernames.includes(currentUsername);
-  const isMaster = currentUsername && MasterUsers.includes(currentUsername);
+  const { isAgent, isMaster } = useUserRoles(currentUsername);
 
   const {
     data: items = [],
@@ -95,7 +93,7 @@ export function ItemsList() {
   const filteredItems = items.filter(
     (item) =>
       item.Title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      item.salesExpertText === currentUsername
+      (isMaster || item.salesExpertText === currentUsername)
   );
 
   const openEditModal = (item: (typeof items)[0]) => {
@@ -119,20 +117,30 @@ export function ItemsList() {
 
   const handleStatusSubmit = async (item: (typeof items)[0]) => {
     const uploader = uploaderRefs.current[item.Id];
-    if (uploader) await uploader.uploadFiles();
 
-    mutation.mutate({
-      id: item.Id,
-      statusType: selectedStatusMap[item.Id],
-    });
+    // 👇 بررسی کن فقط اگر فایل داشت آپلود کن
+    if (uploader && uploader.getFiles().length > 0) {
+      await uploader.uploadFiles();
+    }
 
-    await addEditHistory(
-      item.Id,
-      selectedStatusMap[item.Id],
-      `${item.Id}-${selectedStatusMap[item.Id]}`
-    );
+    const selectedStatus = selectedStatusMap[item.Id];
 
-    // 👇 بعد از ثبت تاریخچه، دوباره تاریخچه رو بیار
+    if (selectedStatus === "__RESET__") {
+      await updateItemStatus(item.Id, "");
+      await addEditHistory(item.Id, "", `${item.Id}-ریست`);
+    } else {
+      mutation.mutate({
+        id: item.Id,
+        statusType: selectedStatus,
+      });
+
+      await addEditHistory(
+        item.Id,
+        selectedStatus,
+        `${item.Id}-${selectedStatus}`
+      );
+    }
+
     if (historyModalId === item.Id) {
       try {
         const history = await fetchEditHistory(item.Id);
@@ -157,7 +165,7 @@ export function ItemsList() {
 
       {filteredItems.map((item) => {
         const uploaderId = `uploader-${item.Id}`;
-        const showHistory = item.status === "1" && historyModalId === item.Id;
+        const showHistory = historyModalId === item.Id;
 
         const generalFiles = fileLinksMap.general[item.parent_GUID] || [];
         const statusFiles = fileLinksMap.status[item.parent_GUID] || [];
@@ -258,9 +266,7 @@ export function ItemsList() {
 
                 <FileUploader
                   folderGuid={item.parent_GUID}
-                  subFolder={`statusDoc/${item.Id}-${
-                    selectedStatusMap[item.Id]
-                  }`} // 🔥 مسیر خاص برای هر ویرایش
+                  subFolder={"statusDoc"}
                   inputId={uploaderId}
                   title="بارگذاری مدارک وضعیت"
                   ref={(el) => {
@@ -300,6 +306,7 @@ export function ItemsList() {
                     </option>
                     <option value="تامین وجه شد">تامین وجه شد</option>
                     <option value="عودت چک">عودت چک</option>
+                    <option value="__RESET__">ریست وضعیت</option>
                   </select>
 
                   <FileUploader

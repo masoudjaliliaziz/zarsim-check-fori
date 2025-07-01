@@ -1,6 +1,6 @@
 export const allowedUsernames = [
   "i:0#.w|zarsim\\khajiabadi",
-  "i:0#.w|zarsim\\zniati",
+  "i:0#.w|zarsim\\zibaniati",
   "i:0#.w|zarsim\\tsani",
   "i:0#.w|zarsim\\habedini",
 ];

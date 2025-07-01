@@ -22,6 +22,8 @@ import {
 import { useCustomers } from "./hooks/useCustomerData";
 import { useSubmitCheck } from "./hooks/useSubmitCheck";
 import uuidv4 from "./utils/createGuid";
+import { useUserRoles } from "./hooks/useUserRoles";
+import { getCurrentUser } from "./api/itemsApi";
 
 function App() {
   const {
@@ -40,11 +42,15 @@ function App() {
 
   const { mutateAsync: submitCheck } = useSubmitCheck();
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   useEffect(() => {
     dispatch(setParentGUID(uuidv4()));
   }, []);
-
+  useEffect(() => {
+    getCurrentUser()
+      .then(setCurrentUsername)
+      .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
+  }, []);
   const formatNumber = (num: number | "") =>
     num === "" ? "" : num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
@@ -57,12 +63,8 @@ function App() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const files = fileUploaderRef.current?.getFiles();
-
     if (!selectedCustomer) return alert("لطفا مشتری را انتخاب کنید");
     if (amount === "") return alert("لطفا مبلغ را وارد کنید");
-    if (!files || files.length === 0)
-      return alert("لطفا تصویر چک را آپلود کنید");
 
     try {
       await fileUploaderRef.current?.uploadFiles();
@@ -97,10 +99,11 @@ function App() {
     title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const { isMaster } = useUserRoles(currentUsername);
   return (
-    <div className="h-full flex  justify-center  p-4">
+    <div className="h-full flex  justify-center  p-4 overflow-auto">
       <form
-        className="bg-white rounded-lg  p-6 w-full max-w-4xl space-y-6"
+        className="bg-white rounded-lg  p-6 w-full max-w-4xl space-y-6 overflow-auto"
         onSubmit={handleSubmit}
       >
         {/* مشتری */}
@@ -108,6 +111,7 @@ function App() {
           <label className="mb-1 font-semibold text-gray-700">نام مشتری</label>
           <input
             readOnly
+            disabled={!isMaster}
             value={selectedCustomer}
             onClick={() => dispatch(setModalOpen(true))}
             placeholder="انتخاب مشتری"
@@ -119,6 +123,7 @@ function App() {
         <div className="flex flex-col w-60">
           <label className="mb-1 font-semibold text-gray-700">مبلغ</label>
           <input
+            disabled={!isMaster}
             type="text"
             value={formatNumber(amount)}
             onChange={(e) => dispatch(setAmount(parseNumber(e.target.value)))}
@@ -143,6 +148,7 @@ function App() {
             تاریخ سررسید
           </label>
           <DatePicker
+            disabled={!isMaster}
             calendar={persian}
             locale={persian_fa}
             value={dueDate}
@@ -154,13 +160,18 @@ function App() {
             format="YYYY/MM/DD"
           />
         </div>
-
-        <button
-          type="submit"
-          className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
-        >
-          ارسال
-        </button>
+        {!isMaster ? (
+          <p className="text-red-500 font-bold text-md">
+            شما مجاز به ثبت چک نیستسد
+          </p>
+        ) : (
+          <button
+            type="submit"
+            className="bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition"
+          >
+            ارسال
+          </button>
+        )}
       </form>
 
       {/* مودال مشتری */}
