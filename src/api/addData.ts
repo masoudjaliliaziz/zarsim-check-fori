@@ -7,6 +7,8 @@ type Doc = {
   dueDate: string;
   parent_GUID: string;
   title: string;
+  salesExpert_text: string;
+  salesExpertName: string;
 };
 
 export async function handleAddTestItem(data: Doc) {
@@ -36,7 +38,9 @@ export async function handleAddTestItem(data: Doc) {
         amount: String(data.amount),
         status: String(data.status),
         dueDate: String(data.dueDate),
+        salesExpertText: String(data.salesExpert_text),
         parent_GUID: data.parent_GUID,
+        salesExertName: String(data.salesExpertName),
       }),
     });
 

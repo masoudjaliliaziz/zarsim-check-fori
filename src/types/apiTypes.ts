@@ -1,5 +1,7 @@
 export interface CustomerItem {
-  Seller: string;
+  Title: string;
+  SalesExpertAcunt_text: string;
+  SalesExpert: string;
 }
 
 export interface AgentItem {
@@ -20,4 +22,20 @@ export interface AddCheckData {
   status: string;
   dueDate: string;
   parent_GUID: string;
+}
+
+export interface Item {
+  Id: number;
+  Title: string;
+  amount: string;
+  dueDate: string;
+  status: string;
+  parent_GUID: string;
+  statusType?: string;
+  Created: string;
+  Author: { Title: string };
+  Editor: { Title: string };
+  Modified: string;
+  salesExpertText: string;
+  salesExertName: string;
 }

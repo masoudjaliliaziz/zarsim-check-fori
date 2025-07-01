@@ -1,6 +1,6 @@
 import type { CustomerItem } from "../types/apiTypes";
 
-export async function loadItems(): Promise<CustomerItem[]> {
+export async function loadCustomer(): Promise<CustomerItem[]> {
   const BASE_URL = "https://portal.zarsim.com";
   const listGuid = "0FC217E3-006E-4B85-A47A-4C016249C958";
   let allResults: CustomerItem[] = [];
@@ -69,5 +69,48 @@ export async function getCurrentUser() {
   }
 
   const data = await response.json();
-  return data.d;
+  return data.d.userName;
+}
+
+
+
+
+
+export async function loadItems(): Promise<CustomerItem[]> {
+  const BASE_URL = "https://portal.zarsim.com";
+  const listPath = "/Lists/customer_info";
+  let allResults: CustomerItem[] = [];
+  let nextUrl = `${BASE_URL}/_api/web/GetList('${listPath}')/items`;
+
+  try {
+    while (nextUrl) {
+      const response = await fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json;odata=verbose",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 403)
+          throw new Error("شما به این لیست دسترسی ندارید.");
+        if (response.status === 401) throw new Error("لطفاً وارد سیستم شوید.");
+        if (response.status === 404) throw new Error("مسیر لیست اشتباه است.");
+        throw new Error(`خطا در درخواست: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data?.d?.results) throw new Error("خطا در ساختار پاسخ دریافتی.");
+
+      allResults = [...allResults, ...data.d.results];
+      nextUrl = data.d.__next || null;
+    }
+
+    return allResults; // حتماً باید آرایه باشه
+  } catch (err: unknown) {
+    console.error("خطا:", err);
+    return []; // اینجا حتماً باید آرایه خالی برگرده نه undefined
+  }
 }

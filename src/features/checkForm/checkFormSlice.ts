@@ -9,6 +9,8 @@ interface CheckFormState {
   dueDate: DateObject | null;
   status: "تامین وجه" | "عودت چک";
   parent_GUID: string;
+  salesExpertName: string | null;
+  salesExpert_text: string | null;
 }
 
 const initialState: CheckFormState = {
@@ -18,6 +20,8 @@ const initialState: CheckFormState = {
   dueDate: null,
   status: "تامین وجه",
   parent_GUID: "",
+  salesExpertName: null,
+  salesExpert_text: null,
 };
 
 const checkFormSlice = createSlice({
@@ -42,6 +46,15 @@ const checkFormSlice = createSlice({
     setParentGUID: (state, action: PayloadAction<string>) => {
       state.parent_GUID = action.payload;
     },
+
+    setSalesExpertName: (state, action: PayloadAction<string | null>) => {
+      state.salesExpertName = action.payload;
+    },
+
+    setSalesExpert_text: (state, action: PayloadAction<string | null>) => {
+      state.salesExpert_text = action.payload;
+    },
+
     resetForm: (state) => {
       state.selectedCustomer = "";
       state.amount = "";
@@ -57,6 +70,8 @@ export const {
   setAmount,
   setDueDate,
   setStatus,
+  setSalesExpertName,
+  setSalesExpert_text,
   setParentGUID,
   resetForm,
 } = checkFormSlice.actions;

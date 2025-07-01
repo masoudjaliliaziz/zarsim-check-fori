@@ -7,6 +7,8 @@ export interface Doc {
   dueDate: string;
   parent_GUID: string;
   title: string;
+  salesExpert_text: string;
+  salesExpertName: string;
 }
 
 export const useSubmitCheck = () =>

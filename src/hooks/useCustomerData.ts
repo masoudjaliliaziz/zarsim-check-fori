@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { loadItems } from "../api/getData";
 import type { CustomerItem } from "../types/apiTypes";
+import { loadItems } from "../api/getData";
 
-export const useCustomers = () =>
-  useQuery<CustomerItem[]>({
+
+export function useCustomers() {
+  return useQuery<CustomerItem[], Error>({
     queryKey: ["customers"],
-    queryFn: async () => await loadItems(),
+    queryFn: loadItems,
   });
+}

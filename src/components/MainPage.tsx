@@ -2,8 +2,18 @@ import { useSelector } from "react-redux";
 import type { RootState } from "./../../store/store";
 import App from "./../App";
 import { ItemsList } from "./ItemsList";
+import { useEffect } from "react";
+import { loadCustomer } from "../api/getData";
 
 export default function MainPage() {
+  useEffect(() => {
+    async function test() {
+      await loadCustomer().then((res) =>
+        console.log("jjjjjjjjjjjjjjjjjjjkjkjjjjjjjjjjj", res)
+      );
+    }
+    test();
+  }, []);
   const parent_GUID = useSelector(
     (state: RootState) => state.checkForm.parent_GUID
   );

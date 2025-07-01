@@ -15,6 +15,8 @@ import {
   setSelectedCustomer,
   setParentGUID,
   resetForm,
+  setSalesExpertName,
+  setSalesExpert_text,
 } from "./features/checkForm/checkFormSlice";
 
 import { useCustomers } from "./hooks/useCustomerData";
@@ -22,12 +24,20 @@ import { useSubmitCheck } from "./hooks/useSubmitCheck";
 import uuidv4 from "./utils/createGuid";
 
 function App() {
-  const { amount, dueDate, modalOpen, selectedCustomer, parent_GUID } =
-    useSelector((state: RootState) => state.checkForm);
+  const {
+    amount,
+    dueDate,
+    modalOpen,
+    selectedCustomer,
+    parent_GUID,
+    salesExpertName,
+    salesExpert_text,
+  } = useSelector((state: RootState) => state.checkForm);
   const dispatch = useDispatch();
 
   const fileUploaderRef = useRef<FileUploaderHandle>(null);
   const { data: customers = [] } = useCustomers();
+
   const { mutateAsync: submitCheck } = useSubmitCheck();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -56,14 +66,17 @@ function App() {
 
     try {
       await fileUploaderRef.current?.uploadFiles();
-
-      await submitCheck({
-        title: selectedCustomer, // این خط اضافه شده
-        amount: String(amount),
-        dueDate: String(dueDate?.format("YYYY/MM/DD")),
-        status: "0",
-        parent_GUID,
-      });
+      if (salesExpertName && salesExpert_text) {
+        await submitCheck({
+          title: selectedCustomer, // این خط اضافه شده
+          amount: String(amount),
+          dueDate: String(dueDate?.format("YYYY/MM/DD")),
+          status: "0",
+          parent_GUID,
+          salesExpertName,
+          salesExpert_text,
+        });
+      }
 
       dispatch(resetForm());
       dispatch(setParentGUID(uuidv4()));
@@ -76,7 +89,7 @@ function App() {
   const uniqueTitles = Array.from(
     new Set(
       customers
-        .map((i) => i.Seller)
+        .map((i) => i.Title)
         .filter((name): name is string => Boolean(name?.trim()))
     )
   );
@@ -179,6 +192,15 @@ function App() {
                   className="p-2 cursor-pointer hover:bg-indigo-100 rounded"
                   onClick={() => {
                     dispatch(setSelectedCustomer(title));
+
+                    // پیدا کردن SalesExpertAcunt_text مربوط به این title
+                    const customer = customers.find((c) => c.Title === title);
+                    const salesExpert_text =
+                      customer?.SalesExpertAcunt_text ?? null;
+                    const salesExpert = customer?.SalesExpert ?? null;
+
+                    dispatch(setSalesExpertName(salesExpert));
+                    dispatch(setSalesExpert_text(salesExpert_text));
                     dispatch(setModalOpen(false));
                   }}
                 >
