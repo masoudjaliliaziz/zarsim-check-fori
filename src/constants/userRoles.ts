@@ -4,7 +4,6 @@ export const allowedUsernames = [
   "i:0#.w|zarsim\\tsani",
   "i:0#.w|zarsim\\habedini",
   "i:0#.w|zarsim\\apazoki",
-  "i:0#.w|zarsim\\mesmaeili",
 ];
 
 export const MasterUsers = [
