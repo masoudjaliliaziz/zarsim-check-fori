@@ -17,6 +17,7 @@ import {
   resetForm,
   setSalesExpertName,
   setSalesExpert_text,
+  setCheckNum,
 } from "./features/checkForm/checkFormSlice";
 
 import { useCustomers } from "./hooks/useCustomerData";
@@ -34,6 +35,7 @@ function App() {
     parent_GUID,
     salesExpertName,
     salesExpert_text,
+    checkNum,
   } = useSelector((state: RootState) => state.checkForm);
   const dispatch = useDispatch();
 
@@ -42,6 +44,7 @@ function App() {
 
   const { mutateAsync: submitCheck } = useSubmitCheck();
   const [searchTerm, setSearchTerm] = useState("");
+
   const [currentUsername, setCurrentUsername] = useState<string | null>(null);
   useEffect(() => {
     dispatch(setParentGUID(uuidv4()));
@@ -72,6 +75,7 @@ function App() {
         await submitCheck({
           title: selectedCustomer, // این خط اضافه شده
           amount: String(amount),
+          checkNum: String(checkNum),
           dueDate: String(dueDate?.format("YYYY/MM/DD")),
           status: "0",
           parent_GUID,
@@ -116,6 +120,18 @@ function App() {
             onClick={() => dispatch(setModalOpen(true))}
             placeholder="انتخاب مشتری"
             className="border border-gray-300 rounded px-3 py-2 cursor-pointer bg-gray-50 focus:outline-none"
+          />
+        </div>
+        {/* شماره چک */}
+        <div className="flex flex-col w-60">
+          <label className="mb-1 font-semibold text-gray-700">شماره چک </label>
+          <input
+            disabled={!isMaster}
+            type="text"
+            value={checkNum}
+            onChange={(e) => dispatch(setCheckNum(String(e.target.value)))}
+            placeholder="شماره چک را وارد کنید"
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none"
           />
         </div>
 

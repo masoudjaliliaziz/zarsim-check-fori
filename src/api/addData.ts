@@ -9,6 +9,7 @@ type Doc = {
   title: string;
   salesExpert_text: string;
   salesExpertName: string;
+  checkNum: string;
 };
 
 export async function handleAddTestItem(data: Doc) {
@@ -41,6 +42,7 @@ export async function handleAddTestItem(data: Doc) {
         salesExpertText: String(data.salesExpert_text),
         parent_GUID: data.parent_GUID,
         salesExertName: String(data.salesExpertName),
+        checkNum: String(data.checkNum),
       }),
     });
 

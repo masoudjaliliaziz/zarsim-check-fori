@@ -38,4 +38,5 @@ export interface Item {
   Modified: string;
   salesExpertText: string;
   salesExertName: string;
+  checkNum: string;
 }

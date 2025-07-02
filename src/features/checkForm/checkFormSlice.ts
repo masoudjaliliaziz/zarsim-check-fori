@@ -11,6 +11,7 @@ interface CheckFormState {
   parent_GUID: string;
   salesExpertName: string | null;
   salesExpert_text: string | null;
+  checkNum: string;
 }
 
 const initialState: CheckFormState = {
@@ -22,6 +23,7 @@ const initialState: CheckFormState = {
   parent_GUID: "",
   salesExpertName: null,
   salesExpert_text: null,
+  checkNum: "",
 };
 
 const checkFormSlice = createSlice({
@@ -30,6 +32,9 @@ const checkFormSlice = createSlice({
   reducers: {
     setSelectedCustomer: (state, action: PayloadAction<string>) => {
       state.selectedCustomer = action.payload;
+    },
+    setCheckNum: (state, action: PayloadAction<string>) => {
+      state.checkNum = action.payload;
     },
     setModalOpen: (state, action: PayloadAction<boolean>) => {
       state.modalOpen = action.payload;
@@ -43,6 +48,7 @@ const checkFormSlice = createSlice({
     setStatus: (state, action: PayloadAction<"تامین وجه" | "عودت چک">) => {
       state.status = action.payload;
     },
+
     setParentGUID: (state, action: PayloadAction<string>) => {
       state.parent_GUID = action.payload;
     },
@@ -60,6 +66,7 @@ const checkFormSlice = createSlice({
       state.amount = "";
       state.dueDate = null;
       state.status = "تامین وجه";
+      state.checkNum = "";
     },
   },
 });
@@ -73,6 +80,7 @@ export const {
   setSalesExpertName,
   setSalesExpert_text,
   setParentGUID,
+  setCheckNum,
   resetForm,
 } = checkFormSlice.actions;
 

@@ -20,10 +20,10 @@ export default function MainPage() {
   console.log("dispatch", parent_GUID);
   return (
     <div
-      className="min-h-screen p-6 bg-slate-200"
+      className="min-h-screen p-6 bg-slate-200 sticky top-6"
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr 2fr ",
+        gridTemplateColumns: "1fr 3fr ",
         gap: "20px",
       }}
     >

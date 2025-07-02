@@ -4,7 +4,7 @@ import { getDigest } from "./getDigest";
 export async function fetchAllItems(): Promise<Item[]> {
   const BASE_URL = "https://portal.zarsim.com";
   const listName = "customerChecksDocFori";
-  const url = `${BASE_URL}/_api/web/lists/getbytitle('${listName}')/items?$select=Id,Title,amount,dueDate,status,parent_GUID,salesExertName,salesExpertText,statusType,Created,Author/Title,Modified,Editor/Title&$expand=Author,Editor`;
+  const url = `${BASE_URL}/_api/web/lists/getbytitle('${listName}')/items?$select=Id,Title,amount,dueDate,status,parent_GUID,salesExertName,checkNum,salesExpertText,statusType,Created,Author/Title,Modified,Editor/Title&$expand=Author,Editor`;
   const res = await fetch(url, {
     headers: { Accept: "application/json;odata=verbose" },
   });

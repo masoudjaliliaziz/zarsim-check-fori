@@ -9,6 +9,7 @@ export interface Doc {
   title: string;
   salesExpert_text: string;
   salesExpertName: string;
+  checkNum: string;
 }
 
 export const useSubmitCheck = () =>

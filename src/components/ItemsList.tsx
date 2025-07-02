@@ -46,12 +46,14 @@ export function ItemsList() {
     statusTypes: string[]; // چند انتخابی برای وضعیت
     title: string;
     salesExpert: string;
+    checkNum: string;
     createdFrom: string; // تاریخ از (ISO string)
     createdTo: string; // تاریخ تا (ISO string)
   }>({
     statusTypes: [],
     title: "",
     salesExpert: "",
+    checkNum: "",
     createdFrom: "",
     createdTo: "",
   });
@@ -76,6 +78,19 @@ export function ItemsList() {
       .then(setCurrentUsername)
       .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
   }, []);
+  useEffect(() => {
+    if (isMaster) {
+      setFilters((prev) => ({
+        ...prev,
+        statusTypes: ["", "عودت چک"],
+      }));
+    } else if (isAgent) {
+      setFilters((prev) => ({
+        ...prev,
+        statusTypes: [""],
+      }));
+    }
+  }, [isMaster, isAgent]);
 
   useEffect(() => {
     async function loadFiles() {
@@ -109,6 +124,10 @@ export function ItemsList() {
     const titleMatch = item.Title.toLowerCase().includes(
       filters.title.toLowerCase()
     );
+    //فیلتر شماره چک
+    const checkNumMatch = item.checkNum
+      ?.toLowerCase()
+      .includes(filters.checkNum.toLowerCase());
 
     // فیلتر کارشناس
     const expertMatch = item.salesExertName
@@ -132,7 +151,14 @@ export function ItemsList() {
     // فیلتر کاربر و مستر طبق قبل
     const userCheck = isMaster || item.salesExpertText === currentUsername;
 
-    return titleMatch && expertMatch && statusMatch && dateMatch && userCheck;
+    return (
+      titleMatch &&
+      expertMatch &&
+      statusMatch &&
+      dateMatch &&
+      userCheck &&
+      checkNumMatch
+    );
   });
   const openEditModal = (item: (typeof items)[0]) => {
     setSelectedStatusMap((prev) => ({
@@ -201,9 +227,21 @@ export function ItemsList() {
       }
     });
   };
+  // قبل از return
+  const totalAmount = filteredItems.reduce(
+    (sum, item) => sum + parseInt(item.amount),
+    0
+  );
+
   return (
     <div className="flex gap-6">
       <aside className="w-64 p-4 bg-gray-100 rounded shadow-md sticky top-4 self-start">
+        <div className="mb-4 p-4 bg-green-100  font-bold rounded shadow flex flex-col items-center justify-center gap-3">
+          <span className="text-slate-600"> جمع کل مبالغ چک‌ها</span>
+          <span className="text-green-800 ">
+            {totalAmount.toLocaleString()} تومان
+          </span>
+        </div>
         <h3 className="font-bold mb-3 text-lg">فیلترها</h3>
 
         {/* فیلتر عنوان */}
@@ -219,20 +257,35 @@ export function ItemsList() {
             placeholder="جستجو در عنوان"
           />
         </label>
-
-        {/* فیلتر کارشناس */}
+        {/* فیلتر شماره چک */}
         <label className="block mb-3">
-          کارشناس:
+          شماره چک:
           <input
             type="text"
-            value={filters.salesExpert}
+            value={filters.checkNum}
             onChange={(e) =>
-              setFilters((prev) => ({ ...prev, salesExpert: e.target.value }))
+              setFilters((prev) => ({ ...prev, checkNum: e.target.value }))
             }
             className="w-full border rounded p-1 mt-1"
-            placeholder="نام کارشناس"
+            placeholder="شماره چک"
           />
         </label>
+
+        {/* فیلتر کارشناس */}
+        {!isAgent && (
+          <label className="block mb-3">
+            کارشناس:
+            <input
+              type="text"
+              value={filters.salesExpert}
+              onChange={(e) =>
+                setFilters((prev) => ({ ...prev, salesExpert: e.target.value }))
+              }
+              className="w-full border rounded p-1 mt-1"
+              placeholder="نام کارشناس"
+            />
+          </label>
+        )}
 
         {/* فیلتر وضعیت (چک باکس چندتایی) */}
         <fieldset className="mb-3">
@@ -299,6 +352,7 @@ export function ItemsList() {
               salesExpert: "",
               createdFrom: "",
               createdTo: "",
+              checkNum: "",
             })
           }
         >
@@ -326,6 +380,8 @@ export function ItemsList() {
 
               <div className="flex justify-between items-center w-full font-semibold text-md">
                 <p>مبلغ: {parseInt(item.amount).toLocaleString()} تومان</p>
+                <p>شماره چک : {item.checkNum}</p>
+
                 <p>تاریخ سررسید: {item.dueDate}</p>
                 <p
                   className={
@@ -348,8 +404,11 @@ export function ItemsList() {
                 >
                   وضعیت تعیین‌شده: {item.statusType || "-"}
                 </p>
-                <p>ساخته شده توسط: {item.Author?.Title}</p>
-                <p>تاریخ ایجاد: {formatDate(item.Created)}</p>
+                <div className="flex flex-col gap-[3.5px] items-center justify-center bg-slate-100 rounded-md text-xs p-0.5">
+                  {" "}
+                  <p>ساخته شده توسط: {item.Author?.Title}</p>
+                  <p>تاریخ ایجاد: {formatDate(item.Created)}</p>
+                </div>
               </div>
 
               {/* فایل‌های عمومی */}
