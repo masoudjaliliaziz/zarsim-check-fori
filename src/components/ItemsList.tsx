@@ -12,6 +12,8 @@ import {
   fetchAllItems,
   updateItemStatus,
   getCurrentUser,
+  deleteItem,
+  updateItem,
 } from "../api/itemsApi";
 
 import { fetchFiles, fetchStatusFiles } from "../api/filesApi";
@@ -42,6 +44,22 @@ export function ItemsList() {
 
   const uploaderRefs = useRef<Record<string, FileUploaderHandle | null>>({});
   const { isAgent, isMaster } = useUserRoles(currentUsername);
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => deleteItem(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: (updatedItem: {
+      id: number;
+      title: string;
+      amount: string;
+      dueDate: string;
+      checkNum: string;
+    }) => updateItem(updatedItem),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
+  });
+
   const [filters, setFilters] = useState<{
     statusTypes: string[]; // چند انتخابی برای وضعیت
     title: string;
@@ -66,7 +84,28 @@ export function ItemsList() {
     queryFn: fetchAllItems,
     refetchInterval: 5000,
   });
+  const [editItemModalId, setEditItemModalId] = useState<number | null>(null);
+  const [editItemForm, setEditItemForm] = useState<{
+    title: string;
+    amount: string;
+    dueDate: string;
+    checkNum: string;
+  }>({
+    title: "",
+    amount: "",
+    dueDate: "",
+    checkNum: "",
+  });
 
+  const openItemEditModal = (item: (typeof items)[0]) => {
+    setEditItemModalId(item.Id);
+    setEditItemForm({
+      title: item.Title,
+      amount: item.amount,
+      dueDate: item.dueDate,
+      checkNum: item.checkNum, // اضافه کن این خط رو
+    });
+  };
   const mutation = useMutation({
     mutationFn: ({ id, statusType }: { id: number; statusType: string }) =>
       updateItemStatus(id, statusType),
@@ -78,6 +117,7 @@ export function ItemsList() {
       .then(setCurrentUsername)
       .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
   }, []);
+
   useEffect(() => {
     if (isMaster) {
       setFilters((prev) => ({
@@ -227,6 +267,25 @@ export function ItemsList() {
       }
     });
   };
+
+  const handleDeleteItem = (id: number) => {
+    if (window.confirm("آیا از حذف این چک اطمینان دارید؟")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (editItemModalId === null) return; // ✅ جلوگیری از ارسال مقدار نامعتبر
+    updateMutation.mutate({
+      id: editItemModalId,
+      title: editItemForm.title,
+      amount: editItemForm.amount,
+      dueDate: editItemForm.dueDate,
+      checkNum: editItemForm.checkNum,
+    });
+    setEditItemModalId(null);
+  };
+
   // قبل از return
   const totalAmount = filteredItems.reduce(
     (sum, item) => sum + parseInt(item.amount),
@@ -360,7 +419,9 @@ export function ItemsList() {
         </button>
       </aside>
       <main className="flex-1">
-        <h2 className="font-bold text-lg mb-4">لیست چک‌ها</h2>
+        <h2 className="font-bold text-lg mb-4">
+          لیست چک‌ها — تعداد: {filteredItems.length}
+        </h2>
 
         {filteredItems.map((item) => {
           const uploaderId = `uploader-${item.Id}`;
@@ -441,13 +502,30 @@ export function ItemsList() {
                   )}
 
                   {isMaster && (
-                    <button
-                      type="button"
-                      className=" bg-yellow-500 text-white font-bold  px-3 py-1.5 rounded-md cursor-pointer hover:bg-yellow-400"
-                      onClick={() => openEditModal(item)}
-                    >
-                      ویرایش وضعیت
-                    </button>
+                    <div className="flex gap-3">
+                      {" "}
+                      <button
+                        type="button"
+                        className=" bg-yellow-500 text-white font-bold  px-3 py-1.5 rounded-md cursor-pointer hover:bg-yellow-400"
+                        onClick={() => openEditModal(item)}
+                      >
+                        ویرایش وضعیت
+                      </button>
+                      <button
+                        type="button"
+                        className="bg-green-600 text-white px-4 py-2 rounded"
+                        onClick={() => openItemEditModal(item)}
+                      >
+                        ویرایش اطلاعات چک
+                      </button>
+                      <button
+                        type="button"
+                        className="bg-red-600 text-white px-4 py-2 rounded"
+                        onClick={() => handleDeleteItem(item.Id)}
+                      >
+                        حذف چک
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -606,6 +684,92 @@ export function ItemsList() {
                     >
                       ✕
                     </button>
+                  </div>
+                </div>
+              )}
+
+              {editItemModalId === item.Id && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
+                  <div className="bg-white rounded-lg p-6 w-96 relative">
+                    <h3 className="text-lg font-bold mb-4">
+                      ویرایش اطلاعات چک
+                    </h3>
+
+                    <label className="block mb-3">
+                      عنوان چک:
+                      <input
+                        type="text"
+                        className="border p-2 rounded w-full mt-1"
+                        value={editItemForm.title}
+                        onChange={(e) =>
+                          setEditItemForm((prev) => ({
+                            ...prev,
+                            title: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+                    <label className="block mb-3">
+                      شماره چک:
+                      <input
+                        type="text"
+                        className="border p-2 rounded w-full mt-1"
+                        value={editItemForm.checkNum || ""}
+                        onChange={(e) =>
+                          setEditItemForm((prev) => ({
+                            ...prev,
+                            checkNum: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <label className="block mb-3">
+                      مبلغ:
+                      <input
+                        type="number"
+                        className="border p-2 rounded w-full mt-1"
+                        value={editItemForm.amount}
+                        onChange={(e) =>
+                          setEditItemForm((prev) => ({
+                            ...prev,
+                            amount: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <label className="block mb-3">
+                      تاریخ سررسید:
+                      <input
+                        type="text"
+                        className="border p-2 rounded w-full mt-1"
+                        value={editItemForm.dueDate}
+                        onChange={(e) =>
+                          setEditItemForm((prev) => ({
+                            ...prev,
+                            dueDate: e.target.value,
+                          }))
+                        }
+                      />
+                    </label>
+
+                    <div className="flex gap-4 justify-end mt-4">
+                      <button
+                        type="button"
+                        className="bg-gray-300 px-4 py-2 rounded"
+                        onClick={() => setEditItemModalId(null)}
+                      >
+                        لغو
+                      </button>
+                      <button
+                        type="button"
+                        className="bg-blue-600 text-white px-4 py-2 rounded"
+                        onClick={handleSaveEdit}
+                      >
+                        ذخیره تغییرات
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}

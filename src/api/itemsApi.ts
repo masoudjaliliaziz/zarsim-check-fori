@@ -84,3 +84,70 @@ export async function getListItemEntityTypeName(
   const data = await res.json();
   return data.d.ListItemEntityTypeFullName;
 }
+
+export async function updateItem(item: {
+  id: number;
+  title: string;
+  amount: string;
+  dueDate: string;
+  checkNum: string;
+}): Promise<void> {
+  const webUrl = "https://portal.zarsim.com";
+  const listName = "customerChecksDocFori";
+  const digest = await getDigest();
+  const entityTypeName = await getListItemEntityTypeName(listName);
+
+  const body = {
+    __metadata: { type: entityTypeName },
+    Title: item.title,
+    amount: item.amount,
+    dueDate: item.dueDate,
+    checkNum: item.checkNum,
+  };
+
+  const res = await fetch(
+    `${webUrl}/_api/web/lists/getbytitle('${listName}')/items(${item.id})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "Content-Type": "application/json;odata=verbose",
+        "IF-MATCH": "*",
+        "X-HTTP-Method": "MERGE",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Error response:", text);
+    throw new Error("خطا در بروزرسانی اطلاعات چک");
+  }
+}
+
+export async function deleteItem(id: number): Promise<void> {
+  const webUrl = "https://portal.zarsim.com";
+  const listName = "customerChecksDocFori";
+  const digest = await getDigest();
+
+  const res = await fetch(
+    `${webUrl}/_api/web/lists/getbytitle('${listName}')/items(${id})`,
+    {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "X-RequestDigest": digest,
+        "IF-MATCH": "*",
+        "X-HTTP-Method": "DELETE",
+      },
+    }
+  );
+
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("Error response:", text);
+    throw new Error("خطا در حذف چک");
+  }
+}
