@@ -239,7 +239,7 @@ export function ItemsList() {
         <div className="mb-4 p-4 bg-green-100  font-bold rounded shadow flex flex-col items-center justify-center gap-3">
           <span className="text-slate-600"> جمع کل مبالغ چک‌ها</span>
           <span className="text-green-800 ">
-            {totalAmount.toLocaleString()} تومان
+            {totalAmount.toLocaleString()} ریال
           </span>
         </div>
         <h3 className="font-bold mb-3 text-lg">فیلترها</h3>
@@ -379,7 +379,7 @@ export function ItemsList() {
               </div>
 
               <div className="flex justify-between items-center w-full font-semibold text-md">
-                <p>مبلغ: {parseInt(item.amount).toLocaleString()} تومان</p>
+                <p>مبلغ: {parseInt(item.amount).toLocaleString()} ریال</p>
                 <p>شماره چک : {item.checkNum}</p>
 
                 <p>تاریخ سررسید: {item.dueDate}</p>
