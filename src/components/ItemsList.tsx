@@ -41,6 +41,9 @@ export function ItemsList() {
       FolderName: string; // 🔥 این باید حتما باشه
     }[]
   >([]);
+  const [statusDescriptionMap, setStatusDescriptionMap] = useState<
+    Record<string, string>
+  >({});
 
   const uploaderRefs = useRef<Record<string, FileUploaderHandle | null>>({});
   const { isAgent, isMaster } = useUserRoles(currentUsername);
@@ -107,8 +110,15 @@ export function ItemsList() {
     });
   };
   const mutation = useMutation({
-    mutationFn: ({ id, statusType }: { id: number; statusType: string }) =>
-      updateItemStatus(id, statusType),
+    mutationFn: ({
+      id,
+      statusType,
+      agentDescription,
+    }: {
+      id: number;
+      statusType: string;
+      agentDescription: string;
+    }) => updateItemStatus(id, statusType,agentDescription),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
   });
 
@@ -221,27 +231,28 @@ export function ItemsList() {
 
   const handleStatusSubmit = async (item: (typeof items)[0]) => {
     const uploader = uploaderRefs.current[item.Id];
+    const selectedStatus = selectedStatusMap[item.Id];
+    const description = statusDescriptionMap[item.Id] || "";
 
     // 👇 بررسی کن فقط اگر فایل داشت آپلود کن
     if (uploader && uploader.getFiles().length > 0) {
       await uploader.uploadFiles();
     }
 
-    const selectedStatus = selectedStatusMap[item.Id];
-
     if (selectedStatus === "__RESET__") {
-      await updateItemStatus(item.Id, "");
+      await updateItemStatus(item.Id, "","");
       await addEditHistory(item.Id, "", `${item.Id}-ریست`);
     } else {
       mutation.mutate({
         id: item.Id,
         statusType: selectedStatus,
+        agentDescription: description, // 👈 توضیحات اضافه شد
       });
 
       await addEditHistory(
         item.Id,
         selectedStatus,
-        `${item.Id}-${selectedStatus}`
+        `${item.Id}-${selectedStatus} | توضیحات: ${description}`
       );
     }
 
@@ -254,6 +265,7 @@ export function ItemsList() {
       }
     }
   };
+
   const toggleStatusFilter = (status: string) => {
     setFilters((prev) => {
       const exists = prev.statusTypes.includes(status);
@@ -533,8 +545,9 @@ export function ItemsList() {
               {/* تعیین وضعیت برای Agent */}
               {isAgent && item.status === "0" && (
                 <div className="mt-4 space-y-2">
+                  {/* انتخاب وضعیت */}
                   <select
-                    className="border p-2 rounded"
+                    className="border p-2 rounded w-full"
                     onChange={(e) =>
                       setSelectedStatusMap((prev) => ({
                         ...prev,
@@ -550,6 +563,20 @@ export function ItemsList() {
                     <option value="عودت چک">عودت چک</option>
                   </select>
 
+                  {/* توضیحات */}
+                  <textarea
+                    placeholder="توضیحات مربوط به وضعیت چک..."
+                    className="border p-2 rounded w-full min-h-[80px]"
+                    onChange={(e) =>
+                      setStatusDescriptionMap((prev) => ({
+                        ...prev,
+                        [item.Id]: e.target.value,
+                      }))
+                    }
+                    value={statusDescriptionMap[item.Id] || ""}
+                  />
+
+                  {/* آپلود مدارک */}
                   <FileUploader
                     folderGuid={item.parent_GUID}
                     subFolder={"statusDoc"}
@@ -560,6 +587,7 @@ export function ItemsList() {
                     }}
                   />
 
+                  {/* دکمه ثبت وضعیت */}
                   <button
                     type="button"
                     className="bg-blue-600 text-white px-4 py-2 rounded"

@@ -4,7 +4,8 @@ import { getDigest } from "./getDigest";
 export async function fetchAllItems(): Promise<Item[]> {
   const BASE_URL = "https://portal.zarsim.com";
   const listName = "customerChecksDocFori";
-  const url = `${BASE_URL}/_api/web/lists/getbytitle('${listName}')/items?$select=Id,Title,amount,dueDate,status,parent_GUID,salesExertName,checkNum,salesExpertText,statusType,Created,Author/Title,Modified,Editor/Title&$expand=Author,Editor`;
+  const url = `${BASE_URL}/_api/web/lists/getbytitle('${listName}')/items?$select=Id,Title,amount,dueDate,status,parent_GUID,salesExertName,checkNum,salesExpertText,statusType,agentDescription,Created,Author/Title,Modified,Editor/Title&$expand=Author,Editor`;
+
   const res = await fetch(url, {
     headers: { Accept: "application/json;odata=verbose" },
   });
@@ -35,7 +36,8 @@ export async function getCurrentUser(): Promise<string> {
 
 export async function updateItemStatus(
   id: number,
-  statusType: string
+  statusType: string,
+  agentDescription: string
 ): Promise<void> {
   const webUrl = "https://portal.zarsim.com";
   const listName = "customerChecksDocFori";
@@ -47,7 +49,8 @@ export async function updateItemStatus(
   const body = {
     __metadata: { type: entityTypeName },
     statusType: isReset ? "" : statusType,
-    status: isReset ? "0" : "1", // 👈 اینجا شرطی کردیم
+    status: isReset ? "0" : "1", //
+    agentDescription: agentDescription || "",
   };
 
   const res = await fetch(

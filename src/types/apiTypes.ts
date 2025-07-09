@@ -39,4 +39,5 @@ export interface Item {
   salesExpertText: string;
   salesExertName: string;
   checkNum: string;
+  agentDescription: string;
 }
