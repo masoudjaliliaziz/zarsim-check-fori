@@ -13,3 +13,8 @@ export const MasterUsers = [
   "i:0#.w|zarsim\\dev1",
   "i:0#.w|zarsim\\mesmaeili",
 ];
+
+export const treasury = [
+  "i:0#.w|zarsim\\mesmaeili",
+  "i:0#.w|zarsim\\Rashaadmin",
+];

@@ -47,7 +47,7 @@ export function ItemsList() {
   >({});
 
   const uploaderRefs = useRef<Record<string, FileUploaderHandle | null>>({});
-  const { isAgent, isMaster } = useUserRoles(currentUsername);
+  const { isAgent, isMaster  } = useUserRoles(currentUsername);
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteItem(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),

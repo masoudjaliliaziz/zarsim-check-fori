@@ -1,6 +1,6 @@
 // hooks/useUserRoles.ts
 import { useMemo } from "react";
-import { allowedUsernames, MasterUsers } from "../constants/userRoles";
+import { allowedUsernames, MasterUsers, treasury } from "../constants/userRoles";
 
 export function useUserRoles(username: string | null) {
   const isAgent = useMemo(
@@ -11,5 +11,10 @@ export function useUserRoles(username: string | null) {
     () => username !== null && MasterUsers.includes(username),
     [username]
   );
-  return { isAgent, isMaster };
+
+  const isTreasury = useMemo(
+    () => username !== null && treasury.includes(username),
+    [username]
+  );
+  return { isAgent, isMaster, isTreasury };
 }

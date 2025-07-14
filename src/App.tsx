@@ -103,7 +103,7 @@ function App() {
     title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const { isMaster } = useUserRoles(currentUsername);
+  const { isMaster   } = useUserRoles(currentUsername);
   return (
     <div className="h-full flex  justify-center  p-4 overflow-auto">
       <form
