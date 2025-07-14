@@ -557,6 +557,10 @@ export function ItemsList() {
                     </option>
                     <option value="تامین وجه شد">تامین وجه شد</option>
                     <option value="عودت چک">عودت چک</option>
+                    <option value="  ارسال مجدد به بانک">
+                      ارسال مجدد به بانک
+                    </option>
+                    <option value=" برگشت مجدد چک">برگشت مجدد چک</option>
                   </select>
 
                   {/* توضیحات */}
@@ -616,6 +620,11 @@ export function ItemsList() {
                       </option>
                       <option value="تامین وجه شد">تامین وجه شد</option>
                       <option value="عودت چک">عودت چک</option>
+                      <option value="  ارسال مجدد به بانک">
+                        ارسال مجدد به بانک
+                      </option>
+                      <option value=" برگشت مجدد چک">برگشت مجدد چک</option>
+
                       <option value="__RESET__">ریست وضعیت</option>
                     </select>
 
