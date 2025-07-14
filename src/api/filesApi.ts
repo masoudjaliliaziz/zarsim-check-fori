@@ -17,6 +17,34 @@ export async function fetchFiles(folderPath: string): Promise<string[]> {
   }
 }
 
+
+// api/filesApi.ts
+
+export async function deleteFile(fileUrl: string): Promise<void> {
+  const webUrl = "https://portal.zarsim.com";
+  const relativeUrl = fileUrl.replace(webUrl, "");
+
+  try {
+    const res = await fetch(`${webUrl}/_api/web/GetFileByServerRelativeUrl('${relativeUrl}')`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json;odata=verbose",
+        "X-RequestDigest": (document.getElementById("__REQUESTDIGEST") as HTMLInputElement)?.value,
+        "IF-MATCH": "*", // یعنی بدون توجه به ورژن فایل حذفش کن
+        "X-HTTP-Method": "DELETE",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error("حذف فایل با شکست مواجه شد");
+    }
+  } catch (err) {
+    console.error("خطا در حذف فایل:", err);
+    throw err;
+  }
+}
+
+
 export async function fetchStatusFiles(folderPath: string): Promise<string[]> {
   // فایل‌های داخل زیرپوشه statusDoc
   return fetchFiles(`${folderPath}/statusDoc`);

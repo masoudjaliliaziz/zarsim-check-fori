@@ -19,6 +19,7 @@ import {
 import { fetchFiles, fetchStatusFiles } from "../api/filesApi";
 import { addEditHistory, fetchEditHistory } from "../api/historyApi";
 import { useUserRoles } from "../hooks/useUserRoles";
+import FileList from "./FileList";
 
 export function ItemsList() {
   const queryClient = useQueryClient();
@@ -187,7 +188,7 @@ export function ItemsList() {
     // فیلتر وضعیت‌ها (اگر هیچ کدام انتخاب نشده، همه رو قبول کن)
     const statusMatch =
       filters.statusTypes.length === 0 ||
-      filters.statusTypes.includes(item.statusType || "");
+      filters.statusTypes.includes(String(item.statusType || ""));
 
     // فیلتر تاریخ ایجاد (اگر فیلتر داده شده)
     const createdDate = new Date(item.Created);
@@ -357,18 +358,22 @@ export function ItemsList() {
         {/* فیلتر وضعیت (چک باکس چندتایی) */}
         <fieldset className="mb-3">
           <legend className="font-semibold mb-1">وضعیت‌ها:</legend>
-          {["تامین وجه شد", "عودت چک", "" /* وضعیت خالی یا ریست */].map(
-            (status, i) => (
-              <label key={i} className="flex items-center gap-2 mb-1">
-                <input
-                  type="checkbox"
-                  checked={filters.statusTypes.includes(status)}
-                  onChange={() => toggleStatusFilter(status)}
-                />
-                <span>{status === "" ? "بدون وضعیت" : status}</span>
-              </label>
-            )
-          )}
+          {[
+            { label: "تامین وجه شد", value: "تامین وجه شد" },
+            { label: "عودت چک", value: "عودت چک" },
+            { label: "بدون وضعیت", value: "" }, // واضح‌تر
+            { label: "ارسال مجدد به بانک", value: "ارسال مجدد به بانک" },
+            { label: "برگشت مجدد چک", value: "برگشت مجدد چک" },
+          ].map(({ label, value }, i) => (
+            <label key={i} className="flex items-center gap-2 mb-1">
+              <input
+                type="checkbox"
+                checked={filters.statusTypes.includes(value)}
+                onChange={() => toggleStatusFilter(value)}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
         </fieldset>
 
         {/* فیلتر تاریخ ایجاد */}
@@ -557,10 +562,10 @@ export function ItemsList() {
                     </option>
                     <option value="تامین وجه شد">تامین وجه شد</option>
                     <option value="عودت چک">عودت چک</option>
-                    <option value="  ارسال مجدد به بانک">
+                    <option value="ارسال مجدد به بانک">
                       ارسال مجدد به بانک
                     </option>
-                    <option value=" برگشت مجدد چک">برگشت مجدد چک</option>
+                    <option value="برگشت مجدد چک">برگشت مجدد چک</option>
                   </select>
 
                   {/* توضیحات */}
@@ -602,42 +607,56 @@ export function ItemsList() {
               {/* ویرایش وضعیت برای Master */}
               {editModalId === item.Id && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-6">
-                  <div className="bg-white rounded-lg p-6 w-96 relative">
+                  <div className="bg-white rounded-lg px-6 py-10 w-96 relative flex flex-col justify-center items-center gap-4">
                     <h3 className="text-lg font-bold mb-2">ویرایش وضعیت چک</h3>
 
+                    {/* -- نمایش فایل های عمومی -- */}
+                    <FileList folderGuid={item.parent_GUID} />
+
                     <select
-                      className="border p-2 rounded w-full mb-4"
-                      value={selectedStatusMap[item.Id] || ""}
+                      className="border p-2 rounded w-full"
                       onChange={(e) =>
                         setSelectedStatusMap((prev) => ({
                           ...prev,
                           [item.Id]: e.target.value,
                         }))
                       }
+                      defaultValue=""
                     >
                       <option value="" disabled>
                         انتخاب وضعیت
                       </option>
                       <option value="تامین وجه شد">تامین وجه شد</option>
                       <option value="عودت چک">عودت چک</option>
-                      <option value="  ارسال مجدد به بانک">
+                      <option value="ارسال مجدد به بانک">
                         ارسال مجدد به بانک
                       </option>
-                      <option value=" برگشت مجدد چک">برگشت مجدد چک</option>
-
-                      <option value="__RESET__">ریست وضعیت</option>
+                      <option value="برگشت مجدد چک">برگشت مجدد چک</option>
                     </select>
+
+                    {/* textarea و فایل آپلودر */}
+                    <textarea
+                      placeholder="توضیحات مربوط به وضعیت چک..."
+                      className="border p-2 rounded w-full min-h-[80px]"
+                      onChange={(e) =>
+                        setStatusDescriptionMap((prev) => ({
+                          ...prev,
+                          [item.Id]: e.target.value,
+                        }))
+                      }
+                      value={statusDescriptionMap[item.Id] || ""}
+                    />
 
                     <FileUploader
                       folderGuid={item.parent_GUID}
-                      subFolder="statusDoc"
-                      inputId={`edit-uploader-${item.Id}`}
-                      title="بارگذاری مدارک وضعیت"
                       ref={(el) => {
                         uploaderRefs.current[item.Id] = el;
                       }}
+                      inputId="checkUploader"
+                      title="تصویر چک"
                     />
 
+                    {/* دکمه‌ها */}
                     <div className="flex gap-4 items-center justify-end space-x-2">
                       <button
                         type="button"
