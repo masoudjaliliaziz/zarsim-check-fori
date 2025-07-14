@@ -3,7 +3,7 @@ import { getDigest } from "./getDigest";
 export async function addEditHistory(
   itemId: number,
   statusType: string,
-  folderName: string
+  agentDescription: string
 ): Promise<void> {
   const webUrl = "https://portal.zarsim.com";
 
@@ -26,7 +26,7 @@ export async function addEditHistory(
           __metadata: { type: "SP.Data.CheckForiEditHistoryListItem" },
           ItemId: itemId,
           StatusType: statusType,
-          FolderName: folderName, // 🔥 اضافه کردن فولدر
+          agentDescription: agentDescription,
         }),
       }
     );
@@ -41,20 +41,18 @@ export async function addEditHistory(
   }
 }
 
-export async function fetchEditHistory(
-  itemId: number
-): Promise<
+export async function fetchEditHistory(itemId: number): Promise<
   {
     StatusType: string;
     Editor: { Title: string };
     Modified: string;
-    FolderName: string;
+    agentDescription: string;
   }[]
 > {
   const webUrl = "https://portal.zarsim.com";
   try {
     const res = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items?$filter=ItemId eq ${itemId}&$orderby=Modified desc&$expand=Editor&$select=StatusType,Editor/Title,Modified,FolderName`,
+      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items?$filter=ItemId eq ${itemId}&$orderby=Modified desc&$expand=Editor&$select=StatusType,Editor/Title,Modified,FolderName,agentDescription`,
       {
         headers: { Accept: "application/json;odata=verbose" },
       }
@@ -65,11 +63,10 @@ export async function fetchEditHistory(
       StatusType: string;
       Editor: { Title: string };
       Modified: string;
-      FolderName: string; // 🔥 باید دقیقا مثل کوئری باشه
+      agentDescription: string; // 🔥 باید دقیقا مثل کوئری باشه
     }[];
   } catch (err) {
     console.error("خطا در دریافت تاریخچه:", err);
     return [];
   }
 }
-  

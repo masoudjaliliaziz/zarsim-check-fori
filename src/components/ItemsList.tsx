@@ -38,7 +38,7 @@ export function ItemsList() {
       StatusType: string;
       Editor: { Title: string };
       Modified: string;
-      FolderName: string; // 🔥 این باید حتما باشه
+      agentDescription: string; // 🔥 این باید حتما باشه
     }[]
   >([]);
   const [statusDescriptionMap, setStatusDescriptionMap] = useState<
@@ -118,7 +118,7 @@ export function ItemsList() {
       id: number;
       statusType: string;
       agentDescription: string;
-    }) => updateItemStatus(id, statusType,agentDescription),
+    }) => updateItemStatus(id, statusType, agentDescription),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
   });
 
@@ -240,7 +240,7 @@ export function ItemsList() {
     }
 
     if (selectedStatus === "__RESET__") {
-      await updateItemStatus(item.Id, "","");
+      await updateItemStatus(item.Id, "", "");
       await addEditHistory(item.Id, "", `${item.Id}-ریست`);
     } else {
       mutation.mutate({
@@ -249,11 +249,7 @@ export function ItemsList() {
         agentDescription: description, // 👈 توضیحات اضافه شد
       });
 
-      await addEditHistory(
-        item.Id,
-        selectedStatus,
-        `${item.Id}-${selectedStatus} | توضیحات: ${description}`
-      );
+      await addEditHistory(item.Id, selectedStatus, description);
     }
 
     if (historyModalId === item.Id) {
@@ -673,6 +669,7 @@ export function ItemsList() {
                             className="border p-2 rounded bg-gray-100"
                           >
                             <p>وضعیت: {history.StatusType}</p>
+                            <p>توضیحات: {history.agentDescription}</p>
                             <p>توسط: {history.Editor?.Title}</p>
                             <p>تاریخ: {formatDate(history.Modified)}</p>
 
