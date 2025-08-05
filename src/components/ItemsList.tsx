@@ -544,7 +544,7 @@ export function ItemsList() {
               </div>
 
               {/* تعیین وضعیت برای Agent */}
-              {isAgent && item.status === "0" && (
+              {isAgent && (
                 <div className="mt-4 space-y-2">
                   {/* انتخاب وضعیت */}
                   <select
