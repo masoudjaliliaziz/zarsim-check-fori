@@ -3,7 +3,8 @@ import { getDigest } from "./getDigest";
 export async function addEditHistory(
   itemId: number,
   statusType: string,
-  agentDescription: string
+  agentDescription: string,
+  checkNum?: string
 ): Promise<void> {
   const webUrl = "https://portal.zarsim.com";
 
@@ -27,6 +28,8 @@ export async function addEditHistory(
           ItemId: itemId,
           StatusType: statusType,
           agentDescription: agentDescription,
+          seen: "0",
+          checkNum,
         }),
       }
     );
@@ -47,12 +50,14 @@ export async function fetchEditHistory(itemId: number): Promise<
     Editor: { Title: string };
     Modified: string;
     agentDescription: string;
+    Author: { Title: string };
+    Created: string;
   }[]
 > {
   const webUrl = "https://portal.zarsim.com";
   try {
     const res = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items?$filter=ItemId eq ${itemId}&$orderby=Modified desc&$expand=Editor&$select=StatusType,Editor/Title,Modified,FolderName,agentDescription`,
+      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items?$filter=ItemId eq ${itemId}&$orderby=Modified desc&$expand=Editor,Author&$select=StatusType,Editor/Title,Author/Title,Author/Id,Author/EMail,Created,Modified,FolderName,agentDescription`,
       {
         headers: { Accept: "application/json;odata=verbose" },
       }
@@ -63,7 +68,48 @@ export async function fetchEditHistory(itemId: number): Promise<
       StatusType: string;
       Editor: { Title: string };
       Modified: string;
-      agentDescription: string; // 🔥 باید دقیقا مثل کوئری باشه
+      agentDescription: string;
+      Author: { Title: string };
+      Created: string;
+    }[];
+  } catch (err) {
+    console.error("خطا در دریافت تاریخچه:", err);
+    return [];
+  }
+}
+
+export async function fetchAllEditHistory(): Promise<
+  {
+    ID: number;
+    checkNum: string;
+    StatusType: string;
+    Editor: { Title: string };
+    Modified: string;
+    agentDescription: string;
+    seen: string;
+  }[]
+> {
+  const webUrl = "https://portal.zarsim.com";
+  try {
+    const res = await fetch(
+      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items` +
+        `?$orderby=Modified desc` +
+        `&$expand=Editor` +
+        `&$select=StatusType,Editor/Title,Modified,FolderName,agentDescription,seen,checkNum,ID`,
+      {
+        headers: { Accept: "application/json;odata=verbose" },
+      }
+    );
+
+    const data = await res.json();
+    return data.d.results as {
+      StatusType: string;
+      Editor: { Title: string };
+      Modified: string;
+      agentDescription: string;
+      ID: number;
+      checkNum: string;
+      seen: string;
     }[];
   } catch (err) {
     console.error("خطا در دریافت تاریخچه:", err);

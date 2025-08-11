@@ -39,7 +39,9 @@ export function ItemsList() {
       StatusType: string;
       Editor: { Title: string };
       Modified: string;
-      agentDescription: string; // 🔥 این باید حتما باشه
+      agentDescription: string;
+      Author: { Title: string; Email?: string; Id?: number };
+      Created: string; // 🔥 این باید حتما باشه
     }[]
   >([]);
   const [statusDescriptionMap, setStatusDescriptionMap] = useState<
@@ -47,7 +49,7 @@ export function ItemsList() {
   >({});
 
   const uploaderRefs = useRef<Record<string, FileUploaderHandle | null>>({});
-  const { isAgent, isMaster  } = useUserRoles(currentUsername);
+  const { isAgent, isMaster } = useUserRoles(currentUsername);
   const deleteMutation = useMutation({
     mutationFn: (id: number) => deleteItem(id),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["items"] }),
@@ -247,10 +249,11 @@ export function ItemsList() {
       mutation.mutate({
         id: item.Id,
         statusType: selectedStatus,
-        agentDescription: description, // 👈 توضیحات اضافه شد
+        agentDescription: description,
+        // 👈 توضیحات اضافه شد
       });
 
-      await addEditHistory(item.Id, selectedStatus, description);
+      await addEditHistory(item.Id, selectedStatus, description, item.checkNum);
     }
 
     if (historyModalId === item.Id) {
@@ -698,8 +701,10 @@ export function ItemsList() {
                           >
                             <p>وضعیت: {history.StatusType}</p>
                             <p>توضیحات: {history.agentDescription}</p>
-                            <p>توسط: {history.Editor?.Title}</p>
-                            <p>تاریخ: {formatDate(history.Modified)}</p>
+
+                            <p>توسط: {history.Author?.Title}</p>
+
+                            <p>تاریخ: {formatDate(history.Created)}</p>
 
                             {/* فایل‌های مربوط به همین ویرایش */}
                           </li>

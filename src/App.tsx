@@ -25,6 +25,10 @@ import { useSubmitCheck } from "./hooks/useSubmitCheck";
 import uuidv4 from "./utils/createGuid";
 import { useUserRoles } from "./hooks/useUserRoles";
 import { getCurrentUser } from "./api/itemsApi";
+import { Bell } from "lucide-react";
+import BellModal from "./components/BellModal";
+import { fetchAllEditHistory } from "./api/historyApi";
+import { useQuery } from "@tanstack/react-query";
 
 function App() {
   const {
@@ -37,6 +41,19 @@ function App() {
     salesExpert_text,
     checkNum,
   } = useSelector((state: RootState) => state.checkForm);
+  const [bellOpen, setBellOpen] = useState(false);
+
+  const { data: bellData } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: async () => {
+      const notifications = await fetchAllEditHistory();
+      return notifications;
+    },
+    refetchInterval: 1000,
+  });
+
+  const unreadCount =
+    bellData?.filter((n) => String(n.seen) === "0").length || 0;
   const dispatch = useDispatch();
 
   const fileUploaderRef = useRef<FileUploaderHandle>(null);
@@ -54,6 +71,7 @@ function App() {
       .then(setCurrentUsername)
       .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
   }, []);
+
   const formatNumber = (num: number | "") =>
     num === "" ? "" : num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
@@ -103,9 +121,29 @@ function App() {
     title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const { isMaster   } = useUserRoles(currentUsername);
+  const { isMaster } = useUserRoles(currentUsername);
   return (
-    <div className="h-full flex  justify-center  p-4 overflow-auto">
+    <div className="h-full flex  justify-center  p-4 overflow-auto relative">
+      <BellModal
+        isOpen={bellOpen}
+        onClose={() => setBellOpen(false)}
+        notifications={bellData}
+      />
+
+      <div
+        className="flex justify-center items-center w-8 h-8 rounded-md bg-slate-700 text-white sticky top-1 right-1 hover:bg-white hover:text-slate-700 cursor-pointer "
+        onClick={() => {
+          setBellOpen(true);
+        }}
+      >
+        <Bell width={20} height={20} />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+            {unreadCount}
+          </span>
+        )}
+      </div>
+
       <form
         className="bg-white rounded-lg  p-6 w-full max-w-4xl space-y-6 overflow-auto"
         onSubmit={handleSubmit}
