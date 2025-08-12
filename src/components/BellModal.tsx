@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Bell, Copy } from "lucide-react";
+import { X, Bell, Copy, CircleCheckBig, ListChecks } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNotifSeen } from "../hooks/useNotifSeen";
 
@@ -85,7 +85,7 @@ export default function BellModal({
                   <Bell className="text-sky-600" />
                 </div>
                 <div>
-                  <div className="font-bold text-base">نوتیفیکیشن‌ها</div>
+                  <div className="font-bold text-base">اعلان ها</div>
                   <p className="text-xs text-gray-500">
                     {unreadNotifications.length} آیتم
                   </p>
@@ -135,7 +135,7 @@ export default function BellModal({
                           className="px-2 py-1 text-xs rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
                           type="button"
                         >
-                          حله
+                          <CircleCheckBig />
                         </button>
                       </div>
 
@@ -194,7 +194,7 @@ export default function BellModal({
                 }}
                 className="px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700 transition"
               >
-                همه رو دیدم
+                <ListChecks />
               </button>
             </div>
           </motion.div>
