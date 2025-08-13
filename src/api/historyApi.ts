@@ -4,6 +4,7 @@ export async function addEditHistory(
   itemId: number,
   statusType: string,
   agentDescription: string,
+  salesExpertText?: string,
   checkNum?: string
 ): Promise<void> {
   const webUrl = "https://portal.zarsim.com";
@@ -29,7 +30,16 @@ export async function addEditHistory(
           StatusType: statusType,
           agentDescription: agentDescription,
           seen: "0",
+          mmoradabadiSeen: "0",
+          sakbariSeen: "0",
+          khajiabadiSeen: "0",
+          zibaniatiSeen: "0",
+          zniatiSeen: "0",
+          tsaniSeen: "0",
+          habediniSeen: "0",
+          apazokiSeen: "0",
           checkNum,
+          salesExpertText,
         }),
       }
     );
@@ -87,6 +97,15 @@ export async function fetchAllEditHistory(): Promise<
     Modified: string;
     agentDescription: string;
     seen: string;
+    khajiabadiSeen: string;
+    zibaniatiSeen: string;
+    zniatiSeen: string;
+    tsaniSeen: string;
+    habediniSeen: string;
+    apazokiSeen: string;
+    sakbariSeen: string;
+    mmoradabadiSeen: string;
+    salesExpertText: string;
   }[]
 > {
   const webUrl = "https://portal.zarsim.com";
@@ -110,6 +129,15 @@ export async function fetchAllEditHistory(): Promise<
       ID: number;
       checkNum: string;
       seen: string;
+      khajiabadiSeen: string;
+      zibaniatiSeen: string;
+      zniatiSeen: string;
+      tsaniSeen: string;
+      habediniSeen: string;
+      apazokiSeen: string;
+      sakbariSeen: string;
+      mmoradabadiSeen: string;
+      salesExpertText: string;
     }[];
   } catch (err) {
     console.error("خطا در دریافت تاریخچه:", err);

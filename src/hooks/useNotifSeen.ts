@@ -6,7 +6,8 @@ export function useNotifSeen() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ ID }: { ID: number }) => markAsSeen(ID),
+    mutationFn: ({ ID, seenCol }: { ID: number; seenCol: string }) =>
+      markAsSeen(ID, seenCol),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },

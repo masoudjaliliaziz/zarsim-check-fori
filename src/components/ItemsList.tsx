@@ -7,7 +7,6 @@ import DatePicker from "react-multi-date-picker";
 import DateObject from "react-date-object";
 import persian from "react-date-object/calendars/persian";
 import persian_fa from "react-date-object/locales/persian_fa";
-
 import {
   fetchAllItems,
   updateItemStatus,
@@ -253,7 +252,13 @@ export function ItemsList() {
         // 👈 توضیحات اضافه شد
       });
 
-      await addEditHistory(item.Id, selectedStatus, description, item.checkNum);
+      await addEditHistory(
+        item.Id,
+        selectedStatus,
+        description,
+        item.salesExpertText,
+        item.checkNum
+      );
     }
 
     if (historyModalId === item.Id) {

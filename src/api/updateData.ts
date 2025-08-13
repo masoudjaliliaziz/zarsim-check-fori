@@ -1,6 +1,6 @@
 import { getDigest } from "./getDigest";
 
-export async function markAsSeen(ID: number) {
+export async function markAsSeen(ID: number, seenCol: string) {
   const digest = await getDigest();
   const address = "https://portal.zarsim.com";
   const res = await fetch(
@@ -17,7 +17,7 @@ export async function markAsSeen(ID: number) {
       body: JSON.stringify({
         __metadata: { type: "SP.Data.CheckForiEditHistoryListItem" },
 
-        seen: "1",
+        [seenCol]: "1",
       }),
     }
   );

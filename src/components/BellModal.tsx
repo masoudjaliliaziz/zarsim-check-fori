@@ -1,8 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Bell, Copy, CircleCheckBig, ListChecks } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNotifSeen } from "../hooks/useNotifSeen";
+import { getCurrentUser } from "../api/itemsApi";
+
+type SeenColumn =
+  | "khajiabadiSeen"
+  | "zibaniatiSeen"
+  | "zniatiSeen"
+  | "tsaniSeen"
+  | "habediniSeen"
+  | "apazokiSeen"
+  | "sakbariSeen"
+  | "mmoradabadiSeen"
+  | "seen";
 
 export type BellNotification = {
   ID: number;
@@ -12,7 +24,7 @@ export type BellNotification = {
   Editor: { Title: string };
   Modified: string;
   agentDescription: string;
-};
+} & Record<SeenColumn, string>;
 
 type Props = {
   isOpen: boolean;
@@ -30,6 +42,39 @@ export default function BellModal({
   onClose,
   notifications = [],
 }: Props) {
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [notifUser, setNotifUser] = useState<SeenColumn>("seen");
+  useEffect(() => {
+    getCurrentUser()
+      .then(setCurrentUsername)
+      .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
+  }, []);
+
+  useEffect(() => {
+    if (currentUsername === "i:0#.w|zarsim\\khajiabadi") {
+      setNotifUser("khajiabadiSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\zibaniati") {
+      setNotifUser("zibaniatiSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\zniati") {
+      setNotifUser("zniatiSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\tsani") {
+      setNotifUser("tsaniSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\habedini") {
+      setNotifUser("habediniSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\apazoki") {
+      setNotifUser("apazokiSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\sakbari") {
+      setNotifUser("sakbariSeen");
+    } else if (currentUsername === "i:0#.w|zarsim\\mmoradabadi") {
+      setNotifUser("mmoradabadiSeen");
+    } else if (
+      currentUsername === "i:0#.w|zarsim\\Rashaadmin" ||
+      currentUsername === "i:0#.w|zarsim\\mesmaeili"
+    ) {
+      setNotifUser("seen");
+    }
+  }, [currentUsername]);
+
   const { mutate } = useNotifSeen();
 
   useEffect(() => {
@@ -42,7 +87,7 @@ export default function BellModal({
   console.log(notifications.map((n) => ({ ID: n.ID, seen: n.seen })));
 
   const unreadNotifications = notifications.filter(
-    (n) => String(n.seen) === "0"
+    (n) => String(n[notifUser]) === "0"
   );
 
   return (
@@ -131,7 +176,9 @@ export default function BellModal({
                           </span>
                         )}
                         <button
-                          onClick={() => mutate({ ID: n.ID })}
+                          onClick={() =>
+                            mutate({ ID: n.ID, seenCol: notifUser })
+                          }
                           className="px-2 py-1 text-xs rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
                           type="button"
                         >
@@ -186,7 +233,7 @@ export default function BellModal({
                 type="button"
                 onClick={() => {
                   unreadNotifications.forEach((notif) => {
-                    mutate({ ID: notif.ID });
+                    mutate({ ID: notif.ID, seenCol: notifUser });
                   });
                   toast.success(
                     "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند"
