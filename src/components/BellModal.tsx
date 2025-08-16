@@ -46,34 +46,35 @@ export default function BellModal({
   const [notifUser, setNotifUser] = useState<SeenColumn>("seen");
   useEffect(() => {
     getCurrentUser()
-      .then(setCurrentUsername)
+      .then((username) => {
+        console.log("Current Username:", username); // لاگ برای دیباگ
+        setCurrentUsername(username);
+      })
       .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
   }, []);
 
-  useEffect(() => {
-    if (currentUsername === "i:0#.w|zarsim\\khajiabadi") {
-      setNotifUser("khajiabadiSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\zibaniati") {
-      setNotifUser("zibaniatiSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\zniati") {
-      setNotifUser("zniatiSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\tsani") {
-      setNotifUser("tsaniSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\habedini") {
-      setNotifUser("habediniSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\apazoki") {
-      setNotifUser("apazokiSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\sakbari") {
-      setNotifUser("sakbariSeen");
-    } else if (currentUsername === "i:0#.w|zarsim\\mmoradabadi") {
-      setNotifUser("mmoradabadiSeen");
-    } else if (
-      currentUsername === "i:0#.w|zarsim\\Rashaadmin" ||
-      currentUsername === "i:0#.w|zarsim\\mesmaeili"
-    ) {
-      setNotifUser("seen");
-    }
-  }, [currentUsername]);
+const usernameToSeenColumn: Record<string, SeenColumn> = {
+  "i:0#.w|zarsim\\khajiabadi": "khajiabadiSeen",
+  "i:0#.w|zarsim\\zibaniati": "zibaniatiSeen",
+  "i:0#.w|zarsim\\zniati": "zniatiSeen",
+  "i:0#.w|zarsim\\tsani": "tsaniSeen",
+  "i:0#.w|zarsim\\habedini": "habediniSeen",
+  "i:0#.w|zarsim\\apazoki": "apazokiSeen",
+  "i:0#.w|zarsim\\sakbari": "sakbariSeen",
+  "i:0#.w|zarsim\\mmoradabadi": "mmoradabadiSeen",
+  "i:0#.w|zarsim\\Rashaadmin": "seen",
+  "i:0#.w|zarsim\\mesmaeili": "seen",
+};
+
+useEffect(() => {
+  if (currentUsername && usernameToSeenColumn[currentUsername]) {
+    setNotifUser(usernameToSeenColumn[currentUsername]);
+    console.log("NotifUser set to:", usernameToSeenColumn[currentUsername]);
+  } else {
+    console.warn("Unknown username:", currentUsername);
+    setNotifUser("seen"); // پیش‌فرض
+  }
+}, [currentUsername]);
 
   const { mutate } = useNotifSeen();
 
@@ -84,11 +85,25 @@ export default function BellModal({
     if (isOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
-  console.log(notifications.map((n) => ({ ID: n.ID, seen: n.seen })));
+console.log(
+  "Notifications:",
+  notifications.map((n) => ({
+    ID: n.ID,
+    seen: n.seen,
+    khajiabadiSeen: n.khajiabadiSeen,
+    zibaniatiSeen: n.zibaniatiSeen,
+    zniatiSeen: n.zniatiSeen,
+    tsaniSeen: n.tsaniSeen,
+    habediniSeen: n.habediniSeen,
+    apazokiSeen: n.apazokiSeen,
+    sakbariSeen: n.sakbariSeen,
+    mmoradabadiSeen: n.mmoradabadiSeen,
+  }))
+);
 
-  const unreadNotifications = notifications.filter(
-    (n) => String(n[notifUser]) === "0"
-  );
+const unreadNotifications = notifications.filter(
+  (n) => String(n[notifUser] ?? "0") === "0"
+);
 
   return (
     <AnimatePresence>
@@ -231,13 +246,20 @@ export default function BellModal({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  unreadNotifications.forEach((notif) => {
-                    mutate({ ID: notif.ID, seenCol: notifUser });
-                  });
-                  toast.success(
-                    "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند"
-                  );
+                onClick={async () => {
+                  try {
+                    await Promise.all(
+                      unreadNotifications.map((notif) =>
+                        mutate({ ID: notif.ID, seenCol: notifUser })
+                      )
+                    );
+                    toast.success(
+                      "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند"
+                    );
+                  } catch (error) {
+                    console.error("خطا در علامت‌گذاری همه اعلان‌ها:", error);
+                    toast.error("خطا در علامت‌گذاری همه اعلان‌ها");
+                  }
                 }}
                 className="px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700 transition"
               >

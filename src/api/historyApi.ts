@@ -109,36 +109,56 @@ export async function fetchAllEditHistory(): Promise<
   }[]
 > {
   const webUrl = "https://portal.zarsim.com";
-  try {
-    const res = await fetch(
-      `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items` +
-        `?$orderby=Modified desc` +
-        `&$expand=Editor` +
-        `&$select=StatusType,Editor/Title,Modified,FolderName,agentDescription,seen,checkNum,ID`,
-      {
-        headers: { Accept: "application/json;odata=verbose" },
-      }
-    );
+  const listUrl =
+    `${webUrl}/_api/web/lists/getbytitle('CheckForiEditHistory')/items` +
+    `?$orderby=Modified desc` +
+    `&$expand=Editor` +
+    `&$select=StatusType,Editor/Title,Modified,FolderName,agentDescription,seen,checkNum,ID,` +
+    `khajiabadiSeen,zibaniatiSeen,zniatiSeen,tsaniSeen,habediniSeen,apazokiSeen,sakbariSeen,mmoradabadiSeen,salesExpertText` +
+    `&$top=1000`; // تنظیم تعداد آیتم‌ها در هر صفحه به 1000
 
-    const data = await res.json();
-    return data.d.results as {
-      StatusType: string;
-      Editor: { Title: string };
-      Modified: string;
-      agentDescription: string;
-      ID: number;
-      checkNum: string;
-      seen: string;
-      khajiabadiSeen: string;
-      zibaniatiSeen: string;
-      zniatiSeen: string;
-      tsaniSeen: string;
-      habediniSeen: string;
-      apazokiSeen: string;
-      sakbariSeen: string;
-      mmoradabadiSeen: string;
-      salesExpertText: string;
-    }[];
+  interface EditHistoryItem {
+    ID: number;
+    checkNum: string;
+    StatusType: string;
+    Editor: { Title: string };
+    Modified: string;
+    agentDescription: string;
+    seen: string;
+    khajiabadiSeen: string;
+    zibaniatiSeen: string;
+    zniatiSeen: string;
+    tsaniSeen: string;
+    habediniSeen: string;
+    apazokiSeen: string;
+    sakbariSeen: string;
+    mmoradabadiSeen: string;
+    salesExpertText: string;
+  }
+
+  let allResults: EditHistoryItem[] = [];
+  let nextUrl: string | null = listUrl;
+
+  try {
+    while (nextUrl) {
+      const res = await fetch(nextUrl, {
+        headers: { Accept: "application/json;odata=verbose" },
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
+      const data = await res.json();
+      console.log("Fetched Notifications:", data.d.results); // لاگ برای دیباگ
+      allResults = allResults.concat(data.d.results); // اضافه کردن نتایج به آرایه
+
+      // اگه لینک __next وجود داشت، ادامه بده
+      nextUrl = data.d.__next || null;
+    }
+
+    console.log(`Total items fetched: ${allResults.length}`); // لاگ تعداد کل آیتم‌ها
+    return allResults;
   } catch (err) {
     console.error("خطا در دریافت تاریخچه:", err);
     return [];

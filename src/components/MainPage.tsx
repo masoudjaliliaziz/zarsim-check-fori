@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { loadCustomer } from "../api/getData";
 import { getCurrentUser } from "../api/itemsApi";
 import { useUserRoles } from "../hooks/useUserRoles";
-import { Bell, QrCode } from "lucide-react";
+import { BanknoteArrowDown, Bell, QrCode } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchAllEditHistory } from "../api/historyApi";
 import BellModal from "./BellModal";
@@ -115,6 +115,14 @@ export default function MainPage() {
                 <QrCode width={20} height={20} />
               </a>
 
+              <a
+                className="flex justify-center items-center w-8 h-8 rounded-md bg-slate-700 text-white sticky top-1 right-1 hover:bg-white hover:text-slate-700 cursor-pointer "
+                href="https://crm.zarsim.com/SitePages/CashExpertView.aspx"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <BanknoteArrowDown width={20} height={20} />
+              </a>
               <div
                 className="flex justify-center items-center w-8 h-8 rounded-md bg-slate-700 text-white sticky top-1 right-1 hover:bg-white hover:text-slate-700 cursor-pointer "
                 onClick={() => {
