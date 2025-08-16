@@ -1,8 +1,20 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Bell, Copy, CircleCheckBig, ListChecks } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNotifSeen } from "../hooks/useNotifSeen";
+import { getCurrentUser } from "../api/itemsApi";
+
+type SeenColumn =
+  | "khajiabadiSeen"
+  | "zibaniatiSeen"
+  | "zniatiSeen"
+  | "tsaniSeen"
+  | "habediniSeen"
+  | "apazokiSeen"
+  | "sakbariSeen"
+  | "mmoradabadiSeen"
+  | "seen";
 
 export type BellNotification = {
   ID: number;
@@ -12,7 +24,7 @@ export type BellNotification = {
   Editor: { Title: string };
   Modified: string;
   agentDescription: string;
-};
+} & Record<SeenColumn, string>;
 
 type Props = {
   isOpen: boolean;
@@ -30,6 +42,40 @@ export default function BellModal({
   onClose,
   notifications = [],
 }: Props) {
+  const [currentUsername, setCurrentUsername] = useState<string | null>(null);
+  const [notifUser, setNotifUser] = useState<SeenColumn>("seen");
+  useEffect(() => {
+    getCurrentUser()
+      .then((username) => {
+        console.log("Current Username:", username); // لاگ برای دیباگ
+        setCurrentUsername(username);
+      })
+      .catch((err) => console.error("خطا در دریافت کاربر فعلی:", err));
+  }, []);
+
+const usernameToSeenColumn: Record<string, SeenColumn> = {
+  "i:0#.w|zarsim\\khajiabadi": "khajiabadiSeen",
+  "i:0#.w|zarsim\\zibaniati": "zibaniatiSeen",
+  "i:0#.w|zarsim\\zniati": "zniatiSeen",
+  "i:0#.w|zarsim\\tsani": "tsaniSeen",
+  "i:0#.w|zarsim\\habedini": "habediniSeen",
+  "i:0#.w|zarsim\\apazoki": "apazokiSeen",
+  "i:0#.w|zarsim\\sakbari": "sakbariSeen",
+  "i:0#.w|zarsim\\mmoradabadi": "mmoradabadiSeen",
+  "i:0#.w|zarsim\\Rashaadmin": "seen",
+  "i:0#.w|zarsim\\mesmaeili": "seen",
+};
+
+useEffect(() => {
+  if (currentUsername && usernameToSeenColumn[currentUsername]) {
+    setNotifUser(usernameToSeenColumn[currentUsername]);
+    console.log("NotifUser set to:", usernameToSeenColumn[currentUsername]);
+  } else {
+    console.warn("Unknown username:", currentUsername);
+    setNotifUser("seen"); // پیش‌فرض
+  }
+}, [currentUsername]);
+
   const { mutate } = useNotifSeen();
 
   useEffect(() => {
@@ -39,11 +85,25 @@ export default function BellModal({
     if (isOpen) document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, onClose]);
-  console.log(notifications.map((n) => ({ ID: n.ID, seen: n.seen })));
+console.log(
+  "Notifications:",
+  notifications.map((n) => ({
+    ID: n.ID,
+    seen: n.seen,
+    khajiabadiSeen: n.khajiabadiSeen,
+    zibaniatiSeen: n.zibaniatiSeen,
+    zniatiSeen: n.zniatiSeen,
+    tsaniSeen: n.tsaniSeen,
+    habediniSeen: n.habediniSeen,
+    apazokiSeen: n.apazokiSeen,
+    sakbariSeen: n.sakbariSeen,
+    mmoradabadiSeen: n.mmoradabadiSeen,
+  }))
+);
 
-  const unreadNotifications = notifications.filter(
-    (n) => String(n.seen) === "0"
-  );
+const unreadNotifications = notifications.filter(
+  (n) => String(n[notifUser] ?? "0") === "0"
+);
 
   return (
     <AnimatePresence>
@@ -131,7 +191,9 @@ export default function BellModal({
                           </span>
                         )}
                         <button
-                          onClick={() => mutate({ ID: n.ID })}
+                          onClick={() =>
+                            mutate({ ID: n.ID, seenCol: notifUser })
+                          }
                           className="px-2 py-1 text-xs rounded-md bg-green-100 text-green-700 hover:bg-green-200 transition"
                           type="button"
                         >
@@ -184,13 +246,20 @@ export default function BellModal({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  unreadNotifications.forEach((notif) => {
-                    mutate({ ID: notif.ID });
-                  });
-                  toast.success(
-                    "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند"
-                  );
+                onClick={async () => {
+                  try {
+                    await Promise.all(
+                      unreadNotifications.map((notif) =>
+                        mutate({ ID: notif.ID, seenCol: notifUser })
+                      )
+                    );
+                    toast.success(
+                      "همه اعلان‌ها به عنوان خوانده شده علامت‌گذاری شدند"
+                    );
+                  } catch (error) {
+                    console.error("خطا در علامت‌گذاری همه اعلان‌ها:", error);
+                    toast.error("خطا در علامت‌گذاری همه اعلان‌ها");
+                  }
                 }}
                 className="px-3 py-2 rounded-md bg-sky-600 text-white hover:bg-sky-700 transition"
               >

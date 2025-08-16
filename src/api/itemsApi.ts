@@ -1,22 +1,65 @@
-import type { Item } from "../types/apiTypes";
 import { getDigest } from "./getDigest";
+
+export interface Item {
+  Id: number;
+  Title: string;
+  amount: string;
+  status: string;
+  dueDate: string;
+  parent_GUID: string;
+  statusType: string;
+  SalesExpert: string;
+  salesExertName: string;
+  salesExpertText: string;
+  checkNum: string;
+  Created: string;
+  Modified: string;
+  Author: { Title: string };
+  Editor: { Title: string };
+}
 
 export async function fetchAllItems(): Promise<Item[]> {
   const BASE_URL = "https://portal.zarsim.com";
   const listName = "customerChecksDocFori";
-  const url =
+  let allResults: Item[] = [];
+  let nextUrl =
     `${BASE_URL}/_api/web/lists/getbytitle('${listName}')/items` +
     `?$select=Id,Title,amount,status,dueDate,parent_GUID,statusType,SalesExpert,salesExertName,salesExpertText,checkNum,Created,Modified,Author/Title,Editor/Title` +
     `&$expand=Author,Editor`;
 
-  const res = await fetch(url, {
-    headers: { Accept: "application/json;odata=verbose" },
-  });
-  if (!res.ok) throw new Error("خطا در دریافت اطلاعات");
-  const data = await res.json();
-  return (data.d.results as Item[]).sort(
-    (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
-  );
+  try {
+    while (nextUrl) {
+      const response = await fetch(nextUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json;odata=verbose",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        if (response.status === 403)
+          throw new Error("شما به این لیست دسترسی ندارید.");
+        if (response.status === 401) throw new Error("لطفاً وارد سیستم شوید.");
+        if (response.status === 404) throw new Error("مسیر لیست اشتباه است.");
+        throw new Error(`خطا در درخواست: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (!data?.d?.results) throw new Error("خطا در ساختار پاسخ دریافتی.");
+
+      allResults = [...allResults, ...data.d.results];
+      nextUrl = data.d.__next || null;
+    }
+
+    return allResults.sort(
+      (a, b) => new Date(b.dueDate).getTime() - new Date(a.dueDate).getTime()
+    );
+  } catch (err: unknown) {
+    console.error("خطا:", err);
+    return [];
+  }
 }
 
 declare const _spPageContextInfo: {

@@ -24,10 +24,10 @@ import { useCustomers } from "./hooks/useCustomerData";
 import { useSubmitCheck } from "./hooks/useSubmitCheck";
 import uuidv4 from "./utils/createGuid";
 import { useUserRoles } from "./hooks/useUserRoles";
-import { getCurrentUser } from "./api/itemsApi";
+import { fetchAllItems, getCurrentUser } from "./api/itemsApi";
 
-
-
+import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 function App() {
   const {
@@ -41,15 +41,32 @@ function App() {
     checkNum,
   } = useSelector((state: RootState) => state.checkForm);
 
-
-
-
-
   const dispatch = useDispatch();
 
   const fileUploaderRef = useRef<FileUploaderHandle>(null);
   const { data: customers = [] } = useCustomers();
+  const { data: items = [] } = useQuery({
+    queryKey: ["items"],
+    queryFn: fetchAllItems,
+    refetchInterval: 5000,
+  });
 
+  const [checkNumError, setCheckNumError] = useState(false);
+
+  useEffect(() => {
+    if (checkNum === "") {
+      setCheckNumError(false);
+      return;
+    }
+
+    const exists = items.some((item) => item.checkNum === checkNum);
+    if (exists) {
+      setCheckNumError(true);
+      toast.error("این شماره چک از قبل موجود است!");
+    } else {
+      setCheckNumError(false);
+    }
+  }, [checkNum, items]);
   const { mutateAsync: submitCheck } = useSubmitCheck();
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -77,6 +94,9 @@ function App() {
 
     if (!selectedCustomer) return alert("لطفا مشتری را انتخاب کنید");
     if (amount === "") return alert("لطفا مبلغ را وارد کنید");
+    if (checkNumError) {
+      return toast.error("امکان ثبت وجود ندارد، شماره چک تکراری است!");
+    }
 
     try {
       await fileUploaderRef.current?.uploadFiles();
@@ -115,9 +135,6 @@ function App() {
   const { isMaster } = useUserRoles(currentUsername);
   return (
     <div className="h-full flex  justify-center  p-4 overflow-auto relative">
-
-
-
       <form
         className="bg-white rounded-lg  p-6 w-full max-w-4xl space-y-6 overflow-auto"
         onSubmit={handleSubmit}
@@ -143,7 +160,9 @@ function App() {
             value={checkNum}
             onChange={(e) => dispatch(setCheckNum(String(e.target.value)))}
             placeholder="شماره چک را وارد کنید"
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none"
+            className={`border rounded px-3 py-2 focus:outline-none ${
+              checkNumError ? "border-red-500 bg-red-100" : "border-gray-300"
+            }`}
           />
         </div>
 

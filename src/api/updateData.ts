@@ -1,8 +1,28 @@
 import { getDigest } from "./getDigest";
 
-export async function markAsSeen(ID: number) {
+export async function markAsSeen(ID: number, seenCol: string): Promise<void> {
+  const validSeenColumns: string[] = [
+    "seen",
+    "khajiabadiSeen",
+    "zibaniatiSeen",
+    "zniatiSeen",
+    "tsaniSeen",
+    "habediniSeen",
+    "apazokiSeen",
+    "sakbariSeen",
+    "mmoradabadiSeen",
+  ];
+
+  if (!validSeenColumns.includes(seenCol)) {
+    console.error("Invalid seenCol:", seenCol);
+    throw new Error(`فیلد نامعتبر: ${seenCol}`);
+  }
+
   const digest = await getDigest();
   const address = "https://portal.zarsim.com";
+
+  console.log("MarkAsSeen - ID:", ID, "seenCol:", seenCol); // لاگ برای دیباگ
+
   const res = await fetch(
     `${address}/_api/web/lists/getbytitle('CheckForiEditHistory')/items(${ID})`,
     {
@@ -16,11 +36,14 @@ export async function markAsSeen(ID: number) {
       },
       body: JSON.stringify({
         __metadata: { type: "SP.Data.CheckForiEditHistoryListItem" },
-
-        seen: "1",
+        [seenCol]: "1",
       }),
     }
   );
 
-  if (!res.ok) throw new Error("باشه");
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error("Error in markAsSeen:", errorText);
+    throw new Error(`خطا در به‌روزرسانی اعلان: ${errorText}`);
+  }
 }
