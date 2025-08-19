@@ -28,6 +28,7 @@ import { fetchAllItems, getCurrentUser } from "./api/itemsApi";
 
 import { useQuery } from "@tanstack/react-query";
 import toast from "react-hot-toast";
+import { addEditHistory } from "./api/historyApi";
 
 function App() {
   const {
@@ -112,7 +113,13 @@ function App() {
           salesExpert_text,
         });
       }
-
+      await addEditHistory(
+        0,
+        "در انتظار تعیین وضعیت کارشناس",
+        "",
+        String(salesExpert_text),
+        checkNum
+      );
       dispatch(resetForm());
       dispatch(setParentGUID(uuidv4()));
       fileUploaderRef.current?.clearFiles();
