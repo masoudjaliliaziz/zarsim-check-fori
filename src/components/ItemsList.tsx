@@ -233,10 +233,20 @@ export function ItemsList() {
 
   const handleStatusSubmit = async (item: (typeof items)[0]) => {
     const uploader = uploaderRefs.current[item.Id];
-    const selectedStatus = selectedStatusMap[item.Id];
+    const selectedStatus = selectedStatusMap[item.Id] || ""; // اطمینان از مقدار پیش‌فرض
     const description = statusDescriptionMap[item.Id] || "";
 
-    // 👇 بررسی کن فقط اگر فایل داشت آپلود کن
+    // بررسی حداقل ورودی
+    if (
+      !selectedStatus &&
+      !description &&
+      (!uploader || uploader.getFiles().length === 0)
+    ) {
+      alert("لطفاً حداقل یک وضعیت، توضیحات یا فایل وارد کنید.");
+      return;
+    }
+
+    // آپلود فایل‌ها در صورت وجود
     if (uploader && uploader.getFiles().length > 0) {
       await uploader.uploadFiles();
     }
@@ -249,7 +259,6 @@ export function ItemsList() {
         id: item.Id,
         statusType: selectedStatus,
         agentDescription: description,
-        // 👈 توضیحات اضافه شد
       });
 
       await addEditHistory(
@@ -629,7 +638,7 @@ export function ItemsList() {
                           [item.Id]: e.target.value,
                         }))
                       }
-                      defaultValue=""
+                      value={selectedStatusMap[item.Id] || ""} // تغییر defaultValue به value برای کنترل بهتر
                     >
                       <option value="" disabled>
                         انتخاب وضعیت
@@ -640,6 +649,8 @@ export function ItemsList() {
                         ارسال مجدد به بانک
                       </option>
                       <option value="برگشت مجدد چک">برگشت مجدد چک</option>
+                      <option value="__RESET__">ریست وضعیت</option>{" "}
+                      {/* گزینه ریست اضافه شده */}
                     </select>
 
                     {/* textarea و فایل آپلودر */}
@@ -676,13 +687,9 @@ export function ItemsList() {
                       <button
                         type="button"
                         className="bg-blue-600 text-white px-4 py-2 rounded"
-                        disabled={!selectedStatusMap[item.Id]}
-                        onClick={async () => {
-                          await handleStatusSubmit(item);
-                          setEditModalId(null);
-                        }}
+                        onClick={() => handleStatusSubmit(item)} // حذف شرط disabled
                       >
-                        ثبت تغییرات
+                        ثبت وضعیت
                       </button>
                     </div>
                   </div>
